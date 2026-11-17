@@ -2,7 +2,7 @@ import streamlit as st
 
 from core.ui import setup_page
 
-setup_page("Upload", "📚")
+setup_page("Learn", "📚")
 
 st.title("📚 Learn")
-st.caption("Coming on Day 4=3.")
+st.caption("Coming on Day 3.")
