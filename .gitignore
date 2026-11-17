@@ -1,0 +1,22 @@
+# Virtual environment: huge, and anyone can rebuild it from requirements.txt
+.venv/
+
+# Python cache files, created automatically
+__pycache__/
+*.pyc
+.pytest_cache/
+
+# REAL bank statements: must never reach GitHub
+data/raw/*
+!data/raw/.gitkeep
+
+# Jupyter checkpoints
+.ipynb_checkpoints/
+
+# Secrets (for later)
+.streamlit/secrets.toml
+.env
+
+# OS junk
+.DS_Store
+Thumbs.db
