@@ -3,7 +3,7 @@ from pathlib import Path
 
 import streamlit as st
 
-from core.parsers import BANKS, StatementParseError, parse_statement, summarize
+from core.parsers import BANKS, StatementParseError, find_balance_gaps, parse_statement, summarize
 from core.ui import setup_page
 
 setup_page("Upload", "📤")
@@ -63,6 +63,15 @@ if df is not None:
     c2.metric("Period", f"{s['start']:%d %b %y} – {s['end']:%d %b %y}")
     c3.metric("Money in", f"₹{s['total_credit']:,.0f}")
     c4.metric("Money out", f"₹{s['total_debit']:,.0f}")
+    gaps = find_balance_gaps(df)
+    for g in gaps.itertuples():
+        direction = "out" if g.amount < 0 else "in"
+        st.warning(
+            f"⚠️ Your balance changes by ₹{abs(g.amount):,.2f} between "
+            f"{g.from_date:%d %b} and {g.to_date:%d %b} with no transaction explaining it. "
+            f"Money {direction} is missing from this file, so totals may be off by this amount. "
+            "Try downloading the statement again for those dates."
+        )
 
     st.dataframe(
         df,

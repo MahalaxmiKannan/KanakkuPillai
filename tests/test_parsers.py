@@ -4,7 +4,7 @@ from pathlib import Path
 import pandas as pd
 import pytest
 
-from core.parsers import STANDARD_COLUMNS, StatementParseError, parse_statement, summarize
+from core.parsers import STANDARD_COLUMNS, StatementParseError, find_balance_gaps, parse_statement, summarize
 
 DATA = Path(__file__).resolve().parents[1] / "data"
 
@@ -97,3 +97,14 @@ def test_headers_but_no_rows():
 def test_unknown_bank():
     with pytest.raises(StatementParseError, match="Unknown bank"):
         parse_statement(b"x", "kotak")
+
+def test_no_balance_gaps_in_clean_statement():
+    df = parse_statement(DATA / "samples" / "sbi_sample.csv", "sbi")
+    assert find_balance_gaps(df).empty
+
+
+def test_missing_transaction_is_detected():
+    df = parse_statement(DATA / "samples" / "sbi_sample.csv", "sbi")
+    df = df.drop(index=2).reset_index(drop=True)     # pretend one row is missing
+    gaps = find_balance_gaps(df)
+    assert len(gaps) == 1

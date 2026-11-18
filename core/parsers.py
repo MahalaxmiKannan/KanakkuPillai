@@ -210,3 +210,22 @@ def summarize(df: pd.DataFrame) -> dict:
         "start": df["date"].min(),
         "end": df["date"].max(),
     }
+
+def find_balance_gaps(df: pd.DataFrame, tolerance: float = 0.01) -> pd.DataFrame:
+    """Rows where the bank's balance doesn't follow from the transactions.
+
+    Each balance should equal: previous balance + credit - debit.
+    A gap means a transaction is missing from the file (or was misread).
+    Returns one row per gap: from_date, to_date, amount (negative = money
+    went out that we can't see).
+    """
+    if df["balance"].isna().all() or len(df) < 2:
+        return pd.DataFrame(columns=["from_date", "to_date", "amount"])
+    expected = df["balance"].shift(1) + df["credit"] - df["debit"]
+    diff = (df["balance"] - expected).iloc[1:]
+    bad = diff[diff.abs() > tolerance]
+    return pd.DataFrame({
+        "from_date": df["date"].shift(1).loc[bad.index],
+        "to_date": df["date"].loc[bad.index],
+        "amount": bad.round(2),
+    }).reset_index(drop=True)
