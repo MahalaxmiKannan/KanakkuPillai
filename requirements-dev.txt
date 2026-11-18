@@ -1,0 +1,5 @@
+# Only needed to re-run notebooks/train_categorizer.ipynb
+-r requirements.txt
+nbclient
+nbformat
+ipykernel

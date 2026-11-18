@@ -2,3 +2,6 @@ streamlit
 pandas
 numpy
 pytest
+plotly
+joblib
+scikit-learn==1.9.1

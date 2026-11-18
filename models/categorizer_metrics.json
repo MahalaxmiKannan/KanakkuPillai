@@ -1,0 +1,20 @@
+{
+  "synthetic_test_not_for_reporting": {
+    "rules_only": {
+      "accuracy": 0.285,
+      "macro_f1": 0.409,
+      "rows": 172
+    },
+    "rules_plus_ml": {
+      "accuracy": 0.738,
+      "macro_f1": 0.734,
+      "rows": 172
+    },
+    "rule_coverage": 0.285
+  },
+  "real_test": null,
+  "training_rows": {
+    "synthetic": 857,
+    "real": 0
+  }
+}

@@ -4,7 +4,7 @@ from pathlib import Path
 import streamlit as st
 
 from core.parsers import BANKS, StatementParseError, find_balance_gaps, parse_statement, summarize
-from core.ui import setup_page
+from core.ui import clear_user_data, setup_page
 
 setup_page("Upload", "📤")
 
@@ -93,8 +93,7 @@ if df is not None:
             st.switch_page("pages/2_My_Spending.py")
     with right:
         if st.button("🗑️ Delete my data", width="stretch"):
-            for key in ("transactions", "source_name", "use_demo"):
-                st.session_state.pop(key, None)
+            clear_user_data()
             st.rerun()
 else:
     st.info("No statement loaded yet.")

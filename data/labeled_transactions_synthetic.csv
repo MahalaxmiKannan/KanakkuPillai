@@ -1,0 +1,858 @@
+payee,category,merchant_group,source
+keerthana krishnan,Transfers (P2P),keerthana,synthetic-person
+annapoorna,Food & dining,annapoorna mess,synthetic-local
+lab record,Education,lab record fee,synthetic-local
+arjun,Transfers (P2P),arjun,synthetic-person
+biryani,Food & dining,biryani,dictionary
+prime video,Subscriptions,prime video,dictionary
+mcdonald,Food & dining,mcdonald,dictionary
+gokul krishnan,Transfers (P2P),gokul,synthetic-person
+ixigo,Travel,ixigo,dictionary
+eb bill payment,Bills & recharge,eb bill payment,synthetic-local
+mohan m,Transfers (P2P),mohan,synthetic-person
+ooty tours,Travel,ooty tours,synthetic-local
+greenline,Travel,greenline travels,synthetic-local
+yamini,Transfers (P2P),yamini,synthetic-person
+reliance smart,Groceries,reliance smart,dictionary
+farm fresh eggs,Groceries,farm fresh eggs,synthetic-local
+kerala kitc,Food & dining,kerala kitchen,synthetic-local
+juice junction,Food & dining,juice junction,synthetic-local
+electricity,Bills & recharge,electricity,dictionary
+udemy,Education,udemy,dictionary
+narayana coaching,Education,narayana coaching,synthetic-local
+lab record fee,Education,lab record fee,synthetic-local
+bala,Transfers (P2P),bala,synthetic-person
+meenakshi mission care,Health,meenakshi mission,synthetic-local
+wifi mont,Bills & recharge,wifi monthly plan,synthetic-local
+pasta street,Food & dining,pasta street,synthetic-local
+yulu,Travel,yulu,dictionary
+allen career academy,Education,allen career,synthetic-local
+fiitjee academy,Education,fiitjee,synthetic-local
+cmrl,Travel,cmrl,dictionary
+kerala kitchen,Food & dining,kerala kitchen,synthetic-local
+kannan departmental,Groceries,kannan departmental,synthetic-local
+parveentravels,Travel,parveen travels,synthetic-local
+neuberg labs care,Health,neuberg labs,synthetic-local
+notes centre academy,Education,notes centre,synthetic-local
+airport shuttle,Travel,airport shuttle,synthetic-local
+fast track cabs,Travel,fast track cabs,synthetic-local
+kavya k,Transfers (P2P),kavya,synthetic-person
+lifestyle,Shopping,lifestyle,dictionary
+organic ba,Groceries,organic bazaar,synthetic-local
+tata cliq,Shopping,tata cliq,dictionary
+divya sharma,Transfers (P2P),divya,synthetic-person
+pranav,Transfers (P2P),pranav,synthetic-person
+delhi metro,Travel,delhi metro,dictionary
+local cable tv payment,Bills & recharge,local cable tv,synthetic-local
+sangeetha mobiles,Shopping,sangeetha mobiles,synthetic-local
+footwear world,Shopping,footwear world,synthetic-local
+life care drugs care,Health,life care drugs,synthetic-local
+amazon music subscription,Subscriptions,amazon music,synthetic-local
+kumar provisions,Groceries,kumar provisions,synthetic-local
+mobile accessories,Shopping,mobile accessories,synthetic-local
+apartment association payment,Bills & recharge,apartment association,synthetic-local
+call taxi,Travel,call taxi,synthetic-local
+fancy pal,Shopping,fancy palace,synthetic-local
+pharmacy,Health,pharmacy,dictionary
+jiohotstar,Subscriptions,jiohotstar,dictionary
+training institute,Education,training institute,synthetic-local
+shreegrains,Groceries,shree grains,synthetic-local
+bus ticket counter,Travel,bus ticket counter,synthetic-local
+apple tv,Subscriptions,apple tv,synthetic-local
+meenaoilstore,Groceries,meena oil store,synthetic-local
+sapna book,Education,sapna book,dictionary
+firstcry,Shopping,firstcry,dictionary
+village fresh,Groceries,village fresh,synthetic-local
+railway booking,Travel,railway booking,synthetic-local
+gleneagles,Health,gleneagles,synthetic-local
+orange tours,Travel,orange tours,synthetic-local
+railwaybooking,Travel,railway booking,synthetic-local
+pharmeasy,Health,pharmeasy,dictionary
+nithya k,Transfers (P2P),nithya,synthetic-person
+janani m,Transfers (P2P),janani,synthetic-person
+snack point cafe,Food & dining,snack point,synthetic-local
+bikeinsurance,Bills & recharge,bike insurance,synthetic-local
+vasanth and co,Shopping,vasanth and co,synthetic-local
+fast trac,Travel,fast track cabs,synthetic-local
+gupta kir,Groceries,gupta kirana,synthetic-local
+perfumepalace,Shopping,perfume palace,synthetic-local
+dinesh verma,Transfers (P2P),dinesh,synthetic-person
+library fee,Education,library fee,synthetic-local
+kavya v,Transfers (P2P),kavya,synthetic-person
+gift corner fashions,Shopping,gift corner,synthetic-local
+amazon prime,Subscriptions,amazon prime,dictionary
+punjabi dh,Food & dining,punjabi dhaba,synthetic-local
+suresh p,Transfers (P2P),suresh,synthetic-person
+jiomart,Groceries,jiomart,dictionary
+amazon fresh,Groceries,amazon fresh,dictionary
+jiosaavn,Subscriptions,jiosaavn,dictionary
+cool bites,Food & dining,cool bites,synthetic-local
+dmrc,Travel,dmrc,dictionary
+ironshopmonthly,Bills & recharge,iron shop monthly,synthetic-local
+leetcode,Education,leetcode,dictionary
+brilliant org academy,Education,brilliant org,synthetic-local
+scaler,Education,scaler,dictionary
+denim hub,Shopping,denim hub,synthetic-local
+maintenance charges,Bills & recharge,maintenance charges,synthetic-local
+maintenancecharges,Bills & recharge,maintenance charges,synthetic-local
+excitel,Bills & recharge,excitel,synthetic-local
+timesprime,Subscriptions,times prime,synthetic-local
+shree grains,Groceries,shree grains,synthetic-local
+srm transports,Travel,srm transports,synthetic-local
+sonyliv,Subscriptions,sonyliv,dictionary
+electronics corner,Shopping,electronics corner,synthetic-local
+sri krishna tiffins,Food & dining,sri krishna tiffins,synthetic-local
+sanjay raj,Transfers (P2P),sanjay,synthetic-person
+hpcl,Travel,hpcl,dictionary
+claude pro,Subscriptions,claude pro,synthetic-local
+the burger shack,Food & dining,the burger shack,synthetic-local
+muruganidlishop,Food & dining,murugan idli shop,synthetic-local
+janani,Transfers (P2P),janani,synthetic-person
+daily needs mart store,Groceries,daily needs mart,synthetic-local
+pluralsight,Education,pluralsight,synthetic-local
+lenskart,Shopping,lenskart,dictionary
+bescom,Bills & recharge,bescom,dictionary
+fruit basket,Groceries,fruit basket,synthetic-local
+nursing home,Health,nursing home,synthetic-local
+provision store,Groceries,provision store,dictionary
+janani kumar,Transfers (P2P),janani,synthetic-person
+keerthana raj,Transfers (P2P),keerthana,synthetic-person
+sanjay,Transfers (P2P),sanjay,synthetic-person
+aha,Subscriptions,aha,dictionary
+fashion junction,Shopping,fashion junction,synthetic-local
+jio,Bills & recharge,jio,dictionary
+ferry services,Travel,ferry services,synthetic-local
+dosa plaza,Food & dining,dosa plaza,synthetic-local
+foodcourt,Food & dining,food court,synthetic-local
+crunchyroll subscription,Subscriptions,crunchyroll,synthetic-local
+pothys sup,Groceries,pothys super store,synthetic-local
+makemytrip,Travel,makemytrip,dictionary
+shoppers stop,Shopping,shoppers stop,dictionary
+apollo,Health,apollo,dictionary
+chennai si,Shopping,chennai silks,synthetic-local
+zepto,Groceries,zepto,dictionary
+print and bind academy,Education,print and bind,synthetic-local
+mobileprepaidtopup,Bills & recharge,mobile prepaid topup,synthetic-local
+pothys textiles,Shopping,pothys textiles,synthetic-local
+ramraj co,Shopping,ramraj cotton,synthetic-local
+patreon subscription,Subscriptions,patreon,synthetic-local
+rohit v,Transfers (P2P),rohit,synthetic-person
+meena,Transfers (P2P),meena,synthetic-person
+kidstoycentre,Shopping,kids toy centre,synthetic-local
+pooja k,Transfers (P2P),pooja,synthetic-person
+vikram menon,Transfers (P2P),vikram,synthetic-person
+pooja,Transfers (P2P),pooja,synthetic-person
+dr lal,Health,dr lal,dictionary
+anbu milk agency,Groceries,anbu milk agency,synthetic-local
+narayana health,Health,narayana health,dictionary
+airtel,Bills & recharge,airtel,dictionary
+home decor,Shopping,home decor mart,synthetic-local
+instamart,Groceries,instamart,dictionary
+tnpsc fees academy,Education,tnpsc fees,synthetic-local
+bag house fashions,Shopping,bag house,synthetic-local
+icloud,Subscriptions,icloud,dictionary
+ravi bike rentals,Travel,ravi bike rentals,synthetic-local
+manoj s,Transfers (P2P),manoj,synthetic-person
+priya nair,Transfers (P2P),priya,synthetic-person
+voot select,Subscriptions,voot select,synthetic-local
+rahul verma,Transfers (P2P),rahul,synthetic-person
+photostudio,Shopping,photo studio,synthetic-local
+skin care doctor,Health,skin care doctor,synthetic-local
+aakash institute,Education,aakash institute,synthetic-local
+nintendoonline,Subscriptions,nintendo online,synthetic-local
+swathi rao,Transfers (P2P),swathi,synthetic-person
+fresh farm vegetables,Groceries,fresh farm vegetables,synthetic-local
+ielts exam,Education,ielts exam,synthetic-local
+hotel saravana,Food & dining,hotel saravana,synthetic-local
+local train pass,Travel,local train pass,synthetic-local
+postpaidbill,Bills & recharge,postpaid bill,synthetic-local
+senthil s,Transfers (P2P),senthil,synthetic-person
+yatraholidays,Travel,yatra holidays,synthetic-local
+footwearworld,Shopping,footwear world,synthetic-local
+karthik nair,Transfers (P2P),karthik,synthetic-person
+recharge,Bills & recharge,recharge,dictionary
+tarun kumar,Transfers (P2P),tarun,synthetic-person
+gate registration academy,Education,gate registration,synthetic-local
+piped gas bill,Bills & recharge,piped gas bill,synthetic-local
+family grocery,Groceries,family grocery,synthetic-local
+sanjay m,Transfers (P2P),sanjay,synthetic-person
+insurance premium payment,Bills & recharge,insurance premium,synthetic-local
+starkebabs,Food & dining,star kebabs,synthetic-local
+namma yatri,Travel,namma yatri,dictionary
+srm transp,Travel,srm transports,synthetic-local
+harish s,Transfers (P2P),harish,synthetic-person
+style bazaar,Shopping,style bazaar,synthetic-local
+wow momo,Food & dining,wow momo,dictionary
+indian oil,Travel,indian oil,dictionary
+petrol,Travel,petrol,dictionary
+rohit,Transfers (P2P),rohit,synthetic-person
+care ambulance,Health,care ambulance,synthetic-local
+blinkit,Groceries,blinkit,dictionary
+nayara ene,Travel,nayara energy,synthetic-local
+keerthana nair,Transfers (P2P),keerthana,synthetic-person
+kavya m,Transfers (P2P),kavya,synthetic-person
+typinginstitute,Education,typing institute,synthetic-local
+preethi verma,Transfers (P2P),preethi,synthetic-person
+simplilearn,Education,simplilearn,dictionary
+fashionjunction,Shopping,fashion junction,synthetic-local
+netmeds,Health,netmeds,dictionary
+meena krishnan,Transfers (P2P),meena,synthetic-person
+lakshmi gupta,Transfers (P2P),lakshmi,synthetic-person
+kallada tr,Travel,kallada travels,synthetic-local
+sims healthcare,Health,sims healthcare,synthetic-local
+maths classes academy,Education,maths classes,synthetic-local
+crossword,Education,crossword,dictionary
+gleneagles care,Health,gleneagles,synthetic-local
+adani electricity,Bills & recharge,adani electricity,dictionary
+national highway toll,Travel,national highway toll,synthetic-local
+reliance fresh,Groceries,reliance fresh,dictionary
+mobile accessories store,Shopping,mobile accessories,synthetic-local
+geeksforgeeks,Education,geeksforgeeks,dictionary
+datacamp,Education,datacamp,synthetic-local
+upgrad,Education,upgrad,dictionary
+beauty parlour,Shopping,beauty parlour,synthetic-local
+naturals salon,Shopping,naturals salon,synthetic-local
+revathi singh,Transfers (P2P),revathi,synthetic-person
+arjun raj,Transfers (P2P),arjun,synthetic-person
+medium membership,Subscriptions,medium membership,synthetic-local
+netflix,Subscriptions,netflix,dictionary
+manoj,Transfers (P2P),manoj,synthetic-person
+homeocare,Health,homeo care,synthetic-local
+go cabs travels,Travel,go cabs,synthetic-local
+nellai fo,Food & dining,nellai foods,synthetic-local
+byjus,Education,byjus,dictionary
+balaji gene,Groceries,balaji general stores,synthetic-local
+meena raj,Transfers (P2P),meena,synthetic-person
+sports zone,Shopping,sports zone,synthetic-local
+the veggie,Groceries,the veggie cart,synthetic-local
+janani krishnan,Transfers (P2P),janani,synthetic-person
+karaikudi chettinad,Food & dining,karaikudi chettinad,synthetic-local
+clinic,Health,clinic,dictionary
+nursing h,Health,nursing home,synthetic-local
+smile dent,Health,smile dental,synthetic-local
+apple services,Subscriptions,apple services,dictionary
+vasanth a,Shopping,vasanth and co,synthetic-local
+green grocers,Groceries,green grocers,synthetic-local
+kindle unlimited,Subscriptions,kindle unlimited,dictionary
+notes centre,Education,notes centre,synthetic-local
+sneha p,Transfers (P2P),sneha,synthetic-person
+print and bind,Education,print and bind,synthetic-local
+olacabs,Travel,olacabs,dictionary
+house rent,Bills & recharge,house rent,synthetic-local
+style bazaa,Shopping,style bazaar,synthetic-local
+flipkart grocery,Groceries,flipkart grocery,dictionary
+lionsgate p,Subscriptions,lionsgate play,synthetic-local
+reliance digital,Shopping,reliance digital,dictionary
+new look tailors,Shopping,new look tailors,synthetic-local
+tarun reddy,Transfers (P2P),tarun,synthetic-person
+care ambulance care,Health,care ambulance,synthetic-local
+tikona networks,Bills & recharge,tikona networks,synthetic-local
+irctc,Travel,irctc,dictionary
+freshtohome,Groceries,freshtohome,dictionary
+ayush siddha care,Health,ayush siddha,synthetic-local
+xbox game,Subscriptions,xbox game pass,synthetic-local
+hoichoi subscription,Subscriptions,hoichoi,synthetic-local
+aakash in,Education,aakash institute,synthetic-local
+snapdeal,Shopping,snapdeal,dictionary
+fortis,Health,fortis,dictionary
+sri murugan fuels,Travel,sri murugan fuels,synthetic-local
+nasscomcourse,Education,nasscom course,synthetic-local
+zingbus,Travel,zingbus,synthetic-local
+cafe coffee day,Food & dining,cafe coffee day,dictionary
+landline bill,Bills & recharge,landline bill,synthetic-local
+pranav gupta,Transfers (P2P),pranav,synthetic-person
+spencers,Groceries,spencers,dictionary
+arjun r,Transfers (P2P),arjun,synthetic-person
+anitha nair,Transfers (P2P),anitha,synthetic-person
+karthik v,Transfers (P2P),karthik,synthetic-person
+manipal hospital,Health,manipal hospital,dictionary
+gas cylinder agency payment,Bills & recharge,gas cylinder agency,synthetic-local
+sewage ch,Bills & recharge,sewage charges,synthetic-local
+kids toy centre,Shopping,kids toy centre,synthetic-local
+denim hub store,Shopping,denim hub,synthetic-local
+wynk,Subscriptions,wynk,dictionary
+grammarly subscription,Subscriptions,grammarly,synthetic-local
+fuel,Travel,fuel,dictionary
+harish p,Transfers (P2P),harish,synthetic-person
+semester,Education,semester fee,synthetic-local
+apartment association,Bills & recharge,apartment association,synthetic-local
+tea time corner,Food & dining,tea time corner,synthetic-local
+max healthcare,Health,max healthcare,dictionary
+fibernetservices,Bills & recharge,fiber net services,synthetic-local
+swathi krishnan,Transfers (P2P),swathi,synthetic-person
+decathlon,Shopping,decathlon,dictionary
+postpaid bill,Bills & recharge,postpaid bill,synthetic-local
+nykaa,Shopping,nykaa,dictionary
+electronic,Shopping,electronics corner,synthetic-local
+ebbillpayment,Bills & recharge,eb bill payment,synthetic-local
+xerox shop academy,Education,xerox shop,synthetic-local
+vignesh kumar,Transfers (P2P),vignesh,synthetic-person
+house rent payment,Bills & recharge,house rent,synthetic-local
+watchworld,Shopping,watch world,synthetic-local
+steam games,Subscriptions,steam games,synthetic-local
+bala singh,Transfers (P2P),bala,synthetic-person
+ajio,Shopping,ajio,dictionary
+mubi,Subscriptions,mubi,synthetic-local
+ganesh fast food,Food & dining,ganesh fast food,synthetic-local
+sharma tr,Travel,sharma transports,synthetic-local
+medical,Health,medical,dictionary
+github copilot,Subscriptions,github copilot,synthetic-local
+physics coaching,Education,physics coaching,synthetic-local
+naturals ice cream,Food & dining,naturals ice cream,dictionary
+paradisefamilyrestaurant,Food & dining,paradise family restaurant,synthetic-local
+ice cream world,Food & dining,ice cream world,synthetic-local
+city scans,Health,city scans,synthetic-local
+hostel,Education,hostel,dictionary
+substack subscription,Subscriptions,substack,synthetic-local
+vignesh,Transfers (P2P),vignesh,synthetic-person
+mani fruits stall,Groceries,mani fruits stall,synthetic-local
+stationery corner,Education,stationery corner,synthetic-local
+nptel,Education,nptel,dictionary
+xerox shop,Education,xerox shop,synthetic-local
+swiggy instamart,Groceries,swiggy instamart,dictionary
+vrl travels,Travel,vrl travels,synthetic-local
+spoken english,Education,spoken english,synthetic-local
+new annai stores,Groceries,new annai stores,synthetic-local
+patreon,Subscriptions,patreon,synthetic-local
+ram dairy,Groceries,ram dairy,synthetic-local
+you broadb,Bills & recharge,you broadband,synthetic-local
+dosa plaza cafe,Food & dining,dosa plaza,synthetic-local
+swathi,Transfers (P2P),swathi,synthetic-person
+suresh,Transfers (P2P),suresh,synthetic-person
+balaji general stores,Groceries,balaji general stores,synthetic-local
+openai,Subscriptions,openai,dictionary
+abhibus,Travel,abhibus,dictionary
+nithya,Transfers (P2P),nithya,synthetic-person
+royal shawarma,Food & dining,royal shawarma,synthetic-local
+swathi singh,Transfers (P2P),swathi,synthetic-person
+the veggie cart,Groceries,the veggie cart,synthetic-local
+nike,Shopping,nike,dictionary
+fiitjee,Education,fiitjee,synthetic-local
+sri lakshmi departmental,Groceries,sri lakshmi departmental,synthetic-local
+sweets,Food & dining,sweets,dictionary
+toll plaza travels,Travel,toll plaza,synthetic-local
+vijaya labs care,Health,vijaya labs,synthetic-local
+pasta str,Food & dining,pasta street,synthetic-local
+saravana bhavan,Food & dining,saravana bhavan,dictionary
+sneha reddy,Transfers (P2P),sneha,synthetic-person
+gokul v,Transfers (P2P),gokul,synthetic-person
+codecademy academy,Education,codecademy,synthetic-local
+the hindu digital,Subscriptions,the hindu digital,synthetic-local
+dental,Health,dental,dictionary
+allen career,Education,allen career,synthetic-local
+strava,Subscriptions,strava,synthetic-local
+sports zone store,Shopping,sports zone,synthetic-local
+new annai,Groceries,new annai stores,synthetic-local
+scribd subscription,Subscriptions,scribd,synthetic-local
+kovai kitchen,Food & dining,kovai kitchen,synthetic-local
+national highway toll travels,Travel,national highway toll,synthetic-local
+bumble,Subscriptions,bumble,dictionary
+applemusic,Subscriptions,apple music,synthetic-local
+kirana,Groceries,kirana,dictionary
+snack point,Food & dining,snack point,synthetic-local
+githubcopilot,Subscriptions,github copilot,synthetic-local
+shruti pillai,Transfers (P2P),shruti,synthetic-person
+kannan de,Groceries,kannan departmental,synthetic-local
+rapido,Travel,rapido,dictionary
+watch world,Shopping,watch world,synthetic-local
+tiffin,Food & dining,tiffin,dictionary
+aster hospital,Health,aster hospital,dictionary
+strava subscription,Subscriptions,strava,synthetic-local
+lalitha je,Shopping,lalitha jewellery,synthetic-local
+brilliant org,Education,brilliant org,synthetic-local
+fancy palace,Shopping,fancy palace,synthetic-local
+fresh farm,Groceries,fresh farm vegetables,synthetic-local
+arjun p,Transfers (P2P),arjun,synthetic-person
+google one,Subscriptions,google one,dictionary
+healthplus,Health,health plus,synthetic-local
+tnpsc fees,Education,tnpsc fees,synthetic-local
+local cable tv,Bills & recharge,local cable tv,synthetic-local
+reliance trends,Shopping,reliance trends,dictionary
+juice junction hotel,Food & dining,juice junction,synthetic-local
+tea time c,Food & dining,tea time corner,synthetic-local
+deepa patel,Transfers (P2P),deepa,synthetic-person
+rolls mania cafe,Food & dining,rolls mania,synthetic-local
+sri kumaran silks fashions,Shopping,sri kumaran silks,synthetic-local
+blusmart,Travel,blusmart,dictionary
+nilgiris,Groceries,nilgiris,dictionary
+haldiram,Food & dining,haldiram,dictionary
+higginbothams,Education,higginbothams,dictionary
+neuberg labs,Health,neuberg labs,synthetic-local
+momo magic,Food & dining,momo magic,synthetic-local
+college,Education,college,dictionary
+sakthiricetraders,Groceries,sakthi rice traders,synthetic-local
+suresh rao,Transfers (P2P),suresh,synthetic-person
+flipkart,Shopping,flipkart,dictionary
+excitel payment,Bills & recharge,excitel,synthetic-local
+water board,Bills & recharge,water board,dictionary
+ajay,Transfers (P2P),ajay,synthetic-person
+tnpdclbill,Bills & recharge,tnpdcl bill,synthetic-local
+nadarstores,Groceries,nadar stores,synthetic-local
+anitha verma,Transfers (P2P),anitha,synthetic-person
+ajay k,Transfers (P2P),ajay,synthetic-person
+ramraj cotton,Shopping,ramraj cotton,synthetic-local
+nintendo online,Subscriptions,nintendo online,synthetic-local
+gokul,Transfers (P2P),gokul,synthetic-person
+ramya,Transfers (P2P),ramya,synthetic-person
+microsoft 365,Subscriptions,microsoft 365,dictionary
+kfc,Food & dining,kfc,dictionary
+ola,Travel,ola,dictionary
+headspace,Subscriptions,headspace,synthetic-local
+kavya,Transfers (P2P),kavya,synthetic-person
+indigo,Travel,indigo,dictionary
+srilakshmidepartmental,Groceries,sri lakshmi departmental,synthetic-local
+laundry services,Bills & recharge,laundry services,synthetic-local
+citybuspass,Travel,city bus pass,synthetic-local
+hotelsaravana,Food & dining,hotel saravana,synthetic-local
+ccd,Food & dining,ccd,dictionary
+maths classes,Education,maths classes,synthetic-local
+physiocare,Health,physio care,synthetic-local
+vision eye care care,Health,vision eye care,synthetic-local
+spectra internet payment,Bills & recharge,spectra internet,synthetic-local
+the shirt,Shopping,the shirt shop,synthetic-local
+headspace subscription,Subscriptions,headspace,synthetic-local
+vedantu,Education,vedantu,dictionary
+tarun,Transfers (P2P),tarun,synthetic-person
+fruitbasket,Groceries,fruit basket,synthetic-local
+dr ramesh,Health,dr ramesh consult,synthetic-local
+naveen verma,Transfers (P2P),naveen,synthetic-person
+nellai foods,Food & dining,nellai foods,synthetic-local
+max fashion,Shopping,max fashion,dictionary
+rolls mania,Food & dining,rolls mania,synthetic-local
+bus fee college academy,Education,bus fee college,synthetic-local
+ootytours,Travel,ooty tours,synthetic-local
+blood test lab,Health,blood test lab,synthetic-local
+burger king,Food & dining,burger king,dictionary
+harish krishnan,Transfers (P2P),harish,synthetic-person
+milkbasket,Groceries,milkbasket,dictionary
+lotus medical,Health,lotus medical,synthetic-local
+call taxi travels,Travel,call taxi,synthetic-local
+daily needs mart,Groceries,daily needs mart,synthetic-local
+spotify,Subscriptions,spotify,dictionary
+bses,Bills & recharge,bses,dictionary
+gokul pillai,Transfers (P2P),gokul,synthetic-person
+bmtc,Travel,bmtc,dictionary
+jeyachandran textiles fashions,Shopping,jeyachandran textiles,synthetic-local
+iron shop monthly,Bills & recharge,iron shop monthly,synthetic-local
+khan tutorials,Education,khan tutorials,synthetic-local
+miniso,Shopping,miniso,dictionary
+goibibo,Travel,goibibo,dictionary
+farmfresheggs,Groceries,farm fresh eggs,synthetic-local
+rohit n,Transfers (P2P),rohit,synthetic-person
+book house,Education,book house,synthetic-local
+zingbus travels,Travel,zingbus,synthetic-local
+canva,Subscriptions,canva,dictionary
+vikram,Transfers (P2P),vikram,synthetic-person
+vegetable market mart,Groceries,vegetable market,synthetic-local
+semester fee,Education,semester fee,synthetic-local
+jeyachandran textiles,Shopping,jeyachandran textiles,synthetic-local
+bike insurance,Bills & recharge,bike insurance,synthetic-local
+kovai kitc,Food & dining,kovai kitchen,synthetic-local
+new look tailors store,Shopping,new look tailors,synthetic-local
+khan tutor,Education,khan tutorials,synthetic-local
+bpcl,Travel,bpcl,dictionary
+madras coffee house,Food & dining,madras coffee house,synthetic-local
+deepa verma,Transfers (P2P),deepa,synthetic-person
+wellness forever,Health,wellness forever,synthetic-local
+cool bites cafe,Food & dining,cool bites,synthetic-local
+steamgames,Subscriptions,steam games,synthetic-local
+diagnostic,Health,diagnostic,dictionary
+sims healthcare care,Health,sims healthcare,synthetic-local
+tneb,Bills & recharge,tneb,dictionary
+chai point,Food & dining,chai point,dictionary
+pantaloons,Shopping,pantaloons,dictionary
+revathi,Transfers (P2P),revathi,synthetic-person
+bata,Shopping,bata,dictionary
+calmapp,Subscriptions,calm app,synthetic-local
+auto stand,Travel,auto stand,synthetic-local
+appletv,Subscriptions,apple tv,synthetic-local
+anbu milk agency store,Groceries,anbu milk agency,synthetic-local
+hnm,Shopping,hnm,dictionary
+sakthi rice traders,Groceries,sakthi rice traders,synthetic-local
+chennai silks,Shopping,chennai silks,synthetic-local
+medplus,Health,medplus,dictionary
+eatsure,Food & dining,eatsure,dictionary
+manoj singh,Transfers (P2P),manoj,synthetic-person
+library fee academy,Education,library fee,synthetic-local
+datacamp academy,Education,datacamp,synthetic-local
+ratnadeep,Groceries,ratnadeep,dictionary
+sanjeevani drugs,Health,sanjeevani drugs,synthetic-local
+dr ramesh consult,Health,dr ramesh consult,synthetic-local
+tarun menon,Transfers (P2P),tarun,synthetic-person
+vignesh verma,Transfers (P2P),vignesh,synthetic-person
+pizza hut,Food & dining,pizza hut,dictionary
+alt balaji,Subscriptions,alt balaji,synthetic-local
+boat,Shopping,boat,dictionary
+karaikudi chettinad cafe,Food & dining,karaikudi chettinad,synthetic-local
+stationery,Education,stationery corner,synthetic-local
+codecademy,Education,codecademy,synthetic-local
+thehindudigital,Subscriptions,the hindu digital,synthetic-local
+dinesh rao,Transfers (P2P),dinesh,synthetic-person
+dish tv,Bills & recharge,dish tv,dictionary
+murugan idli shop,Food & dining,murugan idli shop,synthetic-local
+toll plaza,Travel,toll plaza,synthetic-local
+meena pillai,Transfers (P2P),meena,synthetic-person
+practo,Health,practo,dictionary
+tangedco,Bills & recharge,tangedco,dictionary
+royal sha,Food & dining,royal shawarma,synthetic-local
+adyar ananda bhavan,Food & dining,adyar ananda bhavan,dictionary
+scribd,Subscriptions,scribd,synthetic-local
+sri murugan,Travel,sri murugan fuels,synthetic-local
+hathway,Bills & recharge,hathway,dictionary
+mohan,Transfers (P2P),mohan,synthetic-person
+insurance premium,Bills & recharge,insurance premium,synthetic-local
+indane,Bills & recharge,indane,dictionary
+vignesh pillai,Transfers (P2P),vignesh,synthetic-person
+yamini singh,Transfers (P2P),yamini,synthetic-person
+propertytaxonline,Bills & recharge,property tax online,synthetic-local
+smile dental,Health,smile dental,synthetic-local
+gift corner,Shopping,gift corner,synthetic-local
+sanjay k,Transfers (P2P),sanjay,synthetic-person
+parking charges,Travel,parking charges,synthetic-local
+vision eye care,Health,vision eye care,synthetic-local
+amazon,Shopping,amazon,dictionary
+nithya kumar,Transfers (P2P),nithya,synthetic-person
+agarwal eye,Health,agarwal eye,synthetic-local
+adobe,Subscriptions,adobe,dictionary
+shruti rao,Transfers (P2P),shruti,synthetic-person
+coursera,Education,coursera,dictionary
+divya,Transfers (P2P),divya,synthetic-person
+state tra,Travel,state transport,synthetic-local
+chennai metro,Travel,chennai metro,dictionary
+life care drugs,Health,life care drugs,synthetic-local
+ganesh fas,Food & dining,ganesh fast food,synthetic-local
+dth topup payment,Bills & recharge,dth topup,synthetic-local
+vijaya labs,Health,vijaya labs,synthetic-local
+dth topup,Bills & recharge,dth topup,synthetic-local
+lakshmi raj,Transfers (P2P),lakshmi,synthetic-person
+pooja rao,Transfers (P2P),pooja,synthetic-person
+royal brothers rental,Travel,royal brothers rental,synthetic-local
+restaurant,Food & dining,restaurant,dictionary
+property tax online,Bills & recharge,property tax online,synthetic-local
+coding academy academy,Education,coding academy,synthetic-local
+gupta kirana,Groceries,gupta kirana,synthetic-local
+anitha k,Transfers (P2P),anitha,synthetic-person
+go cabs,Travel,go cabs,synthetic-local
+saravana stores,Shopping,saravana stores,synthetic-local
+ashwin menon,Transfers (P2P),ashwin,synthetic-person
+gas cylinder agency,Bills & recharge,gas cylinder agency,synthetic-local
+velpetrolbunk,Travel,vel petrol bunk,synthetic-local
+blood test,Health,blood test lab,synthetic-local
+book house academy,Education,book house,synthetic-local
+narayana coaching academy,Education,narayana coaching,synthetic-local
+crunchyroll,Subscriptions,crunchyroll,synthetic-local
+ice cream w,Food & dining,ice cream world,synthetic-local
+grammarly,Subscriptions,grammarly,synthetic-local
+thalappakattihotel,Food & dining,thalappakatti hotel,synthetic-local
+hospital,Health,hospital,dictionary
+lionsgate play,Subscriptions,lionsgate play,synthetic-local
+kallada travels,Travel,kallada travels,synthetic-local
+health plus,Health,health plus,synthetic-local
+vikram r,Transfers (P2P),vikram,synthetic-person
+krishna general store,Groceries,krishna general store,synthetic-local
+ayush siddha,Health,ayush siddha,synthetic-local
+royal fruit shop,Groceries,royal fruit shop,synthetic-local
+senthil,Transfers (P2P),senthil,synthetic-person
+notion,Subscriptions,notion,dictionary
+tnpdcl bill,Bills & recharge,tnpdcl bill,synthetic-local
+aavin milk booth,Groceries,aavin milk booth,synthetic-local
+lassi corner,Food & dining,lassi corner,synthetic-local
+air india,Travel,air india,dictionary
+a2b,Food & dining,a2b,dictionary
+playstation plus,Subscriptions,playstation plus,synthetic-local
+suresh gupta,Transfers (P2P),suresh,synthetic-person
+shruti,Transfers (P2P),shruti,synthetic-person
+perplexity pro,Subscriptions,perplexity pro,synthetic-local
+ashwin,Transfers (P2P),ashwin,synthetic-person
+physicscoaching,Education,physics coaching,synthetic-local
+calm app,Subscriptions,calm app,synthetic-local
+roomrent,Bills & recharge,room rent,synthetic-local
+lakshmi,Transfers (P2P),lakshmi,synthetic-person
+rahul n,Transfers (P2P),rahul,synthetic-person
+yatra holidays,Travel,yatra holidays,synthetic-local
+skilllab,Education,skill lab,synthetic-local
+royal broth,Travel,royal brothers rental,synthetic-local
+anand bha,Food & dining,anand bhavan,synthetic-local
+broadband,Bills & recharge,broadband,dictionary
+uber,Travel,uber,dictionary
+meesho,Shopping,meesho,dictionary
+gold gym,Health,gold gym,synthetic-local
+organic bazaar,Groceries,organic bazaar,synthetic-local
+claudepro,Subscriptions,claude pro,synthetic-local
+cafe,Food & dining,cafe,dictionary
+preethi,Transfers (P2P),preethi,synthetic-person
+exam fee,Education,exam fee,dictionary
+tata 1mg,Health,tata 1mg,dictionary
+yamini nair,Transfers (P2P),yamini,synthetic-person
+pluralsight academy,Education,pluralsight,synthetic-local
+coding academy,Education,coding academy,synthetic-local
+domino's,Food & dining,domino's,dictionary
+playstation plus subscription,Subscriptions,playstation plus,synthetic-local
+punjabi dhaba,Food & dining,punjabi dhaba,synthetic-local
+sri ram medicals,Health,sri ram medicals,synthetic-local
+naveen gupta,Transfers (P2P),naveen,synthetic-person
+audible,Subscriptions,audible,dictionary
+vijay sales,Shopping,vijay sales,dictionary
+corporation water tax,Bills & recharge,corporation water tax,synthetic-local
+poorvikamobiles,Shopping,poorvika mobiles,synthetic-local
+dropboxplus,Subscriptions,dropbox plus,synthetic-local
+ortho care,Health,ortho care,synthetic-local
+typing institute,Education,typing institute,synthetic-local
+akasa air,Travel,akasa air,dictionary
+zee5,Subscriptions,zee5,dictionary
+midjourney,Subscriptions,midjourney,synthetic-local
+mediummembership,Subscriptions,medium membership,synthetic-local
+third wave coffee,Food & dining,third wave coffee,dictionary
+cleartrip,Travel,cleartrip,dictionary
+wellnessforever,Health,wellness forever,synthetic-local
+lakshmi r,Transfers (P2P),lakshmi,synthetic-person
+barbeque nation,Food & dining,barbeque nation,dictionary
+westside,Shopping,westside,dictionary
+ashwin gupta,Transfers (P2P),ashwin,synthetic-person
+discoveryplus,Subscriptions,discovery plus,synthetic-local
+nithya pillai,Transfers (P2P),nithya,synthetic-person
+priya n,Transfers (P2P),priya,synthetic-person
+tinder,Subscriptions,tinder,dictionary
+bigbasket,Groceries,bigbasket,dictionary
+naveen,Transfers (P2P),naveen,synthetic-person
+kauvery hospitals,Health,kauvery hospitals,synthetic-local
+you broadband,Bills & recharge,you broadband,synthetic-local
+aavin milk,Groceries,aavin milk booth,synthetic-local
+bus ticke,Travel,bus ticket counter,synthetic-local
+dmart,Groceries,dmart,dictionary
+act fibernet,Bills & recharge,act fibernet,dictionary
+sangeetha,Shopping,sangeetha mobiles,synthetic-local
+nasscom course,Education,nasscom course,synthetic-local
+vel petrol bunk,Travel,vel petrol bunk,synthetic-local
+priya,Transfers (P2P),priya,synthetic-person
+orthocare,Health,ortho care,synthetic-local
+piped gas,Bills & recharge,piped gas bill,synthetic-local
+dominos,Food & dining,dominos,dictionary
+chaayos,Food & dining,chaayos,dictionary
+kauvery hospitals care,Health,kauvery hospitals,synthetic-local
+metro water payment,Bills & recharge,metro water,synthetic-local
+more retail,Groceries,more retail,dictionary
+pranav krishnan,Transfers (P2P),pranav,synthetic-person
+unacademy,Education,unacademy,dictionary
+airport shuttle travels,Travel,airport shuttle,synthetic-local
+kpn travels,Travel,kpn travels,synthetic-local
+hitech lab,Health,hitech lab,synthetic-local
+anitha,Transfers (P2P),anitha,synthetic-person
+manoj reddy,Transfers (P2P),manoj,synthetic-person
+family grocery store,Groceries,family grocery,synthetic-local
+traininginstitute,Education,training institute,synthetic-local
+rahul rao,Transfers (P2P),rahul,synthetic-person
+keerthana,Transfers (P2P),keerthana,synthetic-person
+metro rail,Travel,metro rail,dictionary
+amazon music,Subscriptions,amazon music,synthetic-local
+greenline travels,Travel,greenline travels,synthetic-local
+ramya gupta,Transfers (P2P),ramya,synthetic-person
+bharat gas,Bills & recharge,bharat gas,dictionary
+gaana,Subscriptions,gaana,dictionary
+theburgershack,Food & dining,the burger shack,synthetic-local
+parveen travels,Travel,parveen travels,synthetic-local
+blue tokai,Food & dining,blue tokai,dictionary
+divya rao,Transfers (P2P),divya,synthetic-person
+lic premium,Bills & recharge,lic premium,synthetic-local
+city bus pass,Travel,city bus pass,synthetic-local
+namma metro,Travel,namma metro,dictionary
+pgrent,Bills & recharge,pg rent,synthetic-local
+sri kumaran silks,Shopping,sri kumaran silks,synthetic-local
+harish,Transfers (P2P),harish,synthetic-person
+naveen r,Transfers (P2P),naveen,synthetic-person
+mohan patel,Transfers (P2P),mohan,synthetic-person
+bakery,Food & dining,bakery,dictionary
+google play,Subscriptions,google play,dictionary
+gate registration,Education,gate registration,synthetic-local
+country delight,Groceries,country delight,dictionary
+poorvika mobiles,Shopping,poorvika mobiles,synthetic-local
+aishwarya,Transfers (P2P),aishwarya,synthetic-person
+lotusmedical,Health,lotus medical,synthetic-local
+hitechlab,Health,hitech lab,synthetic-local
+spicejet,Travel,spicejet,dictionary
+sri krishna,Food & dining,sri krishna tiffins,synthetic-local
+natures basket,Groceries,natures basket,dictionary
+project centre academy,Education,project centre,synthetic-local
+nadar stores,Groceries,nadar stores,synthetic-local
+evernote subscription,Subscriptions,evernote,synthetic-local
+deepa,Transfers (P2P),deepa,synthetic-person
+xbox game pass,Subscriptions,xbox game pass,synthetic-local
+meena oil store,Groceries,meena oil store,synthetic-local
+drpriyaent,Health,dr priya ent,synthetic-local
+lassi corner cafe,Food & dining,lassi corner,synthetic-local
+bmrcl,Travel,bmrcl,dictionary
+sneha,Transfers (P2P),sneha,synthetic-person
+tuition,Education,tuition,dictionary
+karthik r,Transfers (P2P),karthik,synthetic-person
+taco bell,Food & dining,taco bell,dictionary
+sri ram medicals care,Health,sri ram medicals,synthetic-local
+perplexity,Subscriptions,perplexity pro,synthetic-local
+sharma transports,Travel,sharma transports,synthetic-local
+ramdairy,Groceries,ram dairy,synthetic-local
+1mg,Health,1mg,dictionary
+dropbox plus,Subscriptions,dropbox plus,synthetic-local
+midjourney subscription,Subscriptions,midjourney,synthetic-local
+priya menon,Transfers (P2P),priya,synthetic-person
+substack,Subscriptions,substack,synthetic-local
+ajay pillai,Transfers (P2P),ajay,synthetic-person
+bala pillai,Transfers (P2P),bala,synthetic-person
+rahul,Transfers (P2P),rahul,synthetic-person
+chatgpt,Subscriptions,chatgpt,dictionary
+homeo care,Health,homeo care,synthetic-local
+puma,Shopping,puma,dictionary
+saravana stores store,Shopping,saravana stores,synthetic-local
+spectra internet,Bills & recharge,spectra internet,synthetic-local
+yoga studio,Health,yoga studio,synthetic-local
+great learning,Education,great learning,dictionary
+licious,Groceries,licious,dictionary
+pranav reddy,Transfers (P2P),pranav,synthetic-person
+ferry services travels,Travel,ferry services,synthetic-local
+ambur star dum hotel,Food & dining,ambur star dum,synthetic-local
+karthik,Transfers (P2P),karthik,synthetic-person
+laundryservices,Bills & recharge,laundry services,synthetic-local
+thyrocare,Health,thyrocare,dictionary
+madras cof,Food & dining,madras coffee house,synthetic-local
+adidas,Shopping,adidas,dictionary
+zara,Shopping,zara,dictionary
+metropolis,Health,metropolis,dictionary
+perfume palace,Shopping,perfume palace,synthetic-local
+royalfruitshop,Groceries,royal fruit shop,synthetic-local
+star kebabs,Food & dining,star kebabs,synthetic-local
+fiber net services,Bills & recharge,fiber net services,synthetic-local
+msedcl,Bills & recharge,msedcl,dictionary
+evernote,Subscriptions,evernote,synthetic-local
+physio care,Health,physio care,synthetic-local
+ambur star dum,Food & dining,ambur star dum,synthetic-local
+sun direct,Bills & recharge,sun direct,dictionary
+murugan vegetables,Groceries,murugan vegetables,synthetic-local
+cult fit gym,Health,cult fit gym,synthetic-local
+baskin robbins,Food & dining,baskin robbins,dictionary
+easemytrip,Travel,easemytrip,dictionary
+canteen,Food & dining,canteen,dictionary
+metro water,Bills & recharge,metro water,synthetic-local
+project centre,Education,project centre,synthetic-local
+bala nair,Transfers (P2P),bala,synthetic-person
+vikram n,Transfers (P2P),vikram,synthetic-person
+preethi raj,Transfers (P2P),preethi,synthetic-person
+sanjeevani,Health,sanjeevani drugs,synthetic-local
+orangetours,Travel,orange tours,synthetic-local
+cult fit gym care,Health,cult fit gym,synthetic-local
+pooja m,Transfers (P2P),pooja,synthetic-person
+senthil v,Transfers (P2P),senthil,synthetic-person
+vodafone,Bills & recharge,vodafone,dictionary
+apple music,Subscriptions,apple music,synthetic-local
+vrl travels travels,Travel,vrl travels,synthetic-local
+senthil r,Transfers (P2P),senthil,synthetic-person
+selvamricemandi,Groceries,selvam rice mandi,synthetic-local
+ravi bike rentals travels,Travel,ravi bike rentals,synthetic-local
+pg rent,Bills & recharge,pg rent,synthetic-local
+yamini menon,Transfers (P2P),yamini,synthetic-person
+physicswallah,Education,physicswallah,dictionary
+laptop world,Shopping,laptop world,synthetic-local
+fastag,Travel,fastag,dictionary
+bharatdalmill,Groceries,bharat dal mill,synthetic-local
+agarwal eye care,Health,agarwal eye,synthetic-local
+the shirt shop,Shopping,the shirt shop,synthetic-local
+school,Education,school,dictionary
+tanishq,Shopping,tanishq,dictionary
+rohit das,Transfers (P2P),rohit,synthetic-person
+revathi krishnan,Transfers (P2P),revathi,synthetic-person
+naturalssalon,Shopping,naturals salon,synthetic-local
+aishwarya raj,Transfers (P2P),aishwarya,synthetic-person
+selvam rice mandi,Groceries,selvam rice mandi,synthetic-local
+dr priya ent,Health,dr priya ent,synthetic-local
+deepa iyer,Transfers (P2P),deepa,synthetic-person
+tikona networks payment,Bills & recharge,tikona networks,synthetic-local
+dinesh s,Transfers (P2P),dinesh,synthetic-person
+lic premium payment,Bills & recharge,lic premium,synthetic-local
+beauty parlour store,Shopping,beauty parlour,synthetic-local
+momomagic,Food & dining,momo magic,synthetic-local
+loan emi,Bills & recharge,loan emi,synthetic-local
+zomato,Food & dining,zomato,dictionary
+bsnl,Bills & recharge,bsnl,dictionary
+ajay patel,Transfers (P2P),ajay,synthetic-person
+sneha s,Transfers (P2P),sneha,synthetic-person
+skill lab,Education,skill lab,synthetic-local
+annapoorna mess,Food & dining,annapoorna mess,synthetic-local
+ramya k,Transfers (P2P),ramya,synthetic-person
+pothys super store,Groceries,pothys super store,synthetic-local
+tnstc,Travel,tnstc,dictionary
+local train,Travel,local train pass,synthetic-local
+corporationwatertax,Bills & recharge,corporation water tax,synthetic-local
+state transport,Travel,state transport,synthetic-local
+muruganvegetables,Groceries,murugan vegetables,synthetic-local
+university,Education,university,dictionary
+room rent,Bills & recharge,room rent,synthetic-local
+bag house,Shopping,bag house,synthetic-local
+sony liv,Subscriptions,sony liv,dictionary
+home decor mart,Shopping,home decor mart,synthetic-local
+ramya p,Transfers (P2P),ramya,synthetic-person
+krishnageneralstore,Groceries,krishna general store,synthetic-local
+mohan singh,Transfers (P2P),mohan,synthetic-person
+hp gas,Bills & recharge,hp gas,dictionary
+kumar provisions mart,Groceries,kumar provisions,synthetic-local
+youtube,Subscriptions,youtube,dictionary
+croma,Shopping,croma,dictionary
+hoichoi,Subscriptions,hoichoi,synthetic-local
+city scans care,Health,city scans,synthetic-local
+titan,Shopping,titan,dictionary
+discovery plus,Subscriptions,discovery plus,synthetic-local
+yoga studio care,Health,yoga studio,synthetic-local
+skincaredoctor,Health,skin care doctor,synthetic-local
+spokenenglish,Education,spoken english,synthetic-local
+supermarket,Groceries,supermarket,dictionary
+shruti m,Transfers (P2P),shruti,synthetic-person
+laptopworld,Shopping,laptop world,synthetic-local
+hotstar,Subscriptions,hotstar,dictionary
+tata play,Bills & recharge,tata play,dictionary
+tata power,Bills & recharge,tata power,dictionary
+meenakshi mission,Health,meenakshi mission,synthetic-local
+revathi k,Transfers (P2P),revathi,synthetic-person
+bharat petroleum,Travel,bharat petroleum,dictionary
+kpn travels travels,Travel,kpn travels,synthetic-local
+wifi monthly plan,Bills & recharge,wifi monthly plan,synthetic-local
+greengrocers,Groceries,green grocers,synthetic-local
+altbalaji,Subscriptions,alt balaji,synthetic-local
+myntra,Shopping,myntra,dictionary
+nayara energy,Travel,nayara energy,synthetic-local
+parkingcharges,Travel,parking charges,synthetic-local
+hot chips,Food & dining,hot chips,synthetic-local
+aishwarya das,Transfers (P2P),aishwarya,synthetic-person
+sun nxt,Subscriptions,sun nxt,dictionary
+uniqlo,Shopping,uniqlo,dictionary
+manifruitsstall,Groceries,mani fruits stall,synthetic-local
+faasos,Food & dining,faasos,dictionary
+bus fee college,Education,bus fee college,synthetic-local
+vegetable market,Groceries,vegetable market,synthetic-local
+bharat dal mill,Groceries,bharat dal mill,synthetic-local
+subway,Food & dining,subway,dictionary
+mobile prepaid topup,Bills & recharge,mobile prepaid topup,synthetic-local
+food court,Food & dining,food court,synthetic-local
+lalitha jewellery,Shopping,lalitha jewellery,synthetic-local
+times prime,Subscriptions,times prime,synthetic-local
+gold gym care,Health,gold gym,synthetic-local
+starbucks,Food & dining,starbucks,dictionary
+swiggy,Food & dining,swiggy,dictionary
+landline,Bills & recharge,landline bill,synthetic-local
+ikea,Shopping,ikea,dictionary
+paradise family restaurant,Food & dining,paradise family restaurant,synthetic-local
+villagefresh,Groceries,village fresh,synthetic-local
+behrouz,Food & dining,behrouz,dictionary
+preethi k,Transfers (P2P),preethi,synthetic-person
+linkedin premium,Subscriptions,linkedin premium,dictionary
+dinesh,Transfers (P2P),dinesh,synthetic-person
+ashwin krishnan,Transfers (P2P),ashwin,synthetic-person
+loanemi,Bills & recharge,loan emi,synthetic-local
+setc,Travel,setc,dictionary
+hot chips hotel,Food & dining,hot chips,synthetic-local
+thalappakatti hotel,Food & dining,thalappakatti hotel,synthetic-local
+sewage charges,Bills & recharge,sewage charges,synthetic-local
+autostand,Travel,auto stand,synthetic-local
+redbus,Travel,redbus,dictionary
+divya m,Transfers (P2P),divya,synthetic-person
+anand bhavan,Food & dining,anand bhavan,synthetic-local
+vootselect,Subscriptions,voot select,synthetic-local
+pothys tex,Shopping,pothys textiles,synthetic-local
+ielts exam academy,Education,ielts exam,synthetic-local
+photo studio,Shopping,photo studio,synthetic-local
+mubi subscription,Subscriptions,mubi,synthetic-local
