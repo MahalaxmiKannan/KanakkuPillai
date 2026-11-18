@@ -45,6 +45,7 @@ def load_real_labels(path: Path) -> pd.DataFrame:
     real["label"] = real["label"].str.strip().str.lower().map(canonical)
     real = real.dropna(subset=["label"])                    # drop labels that aren't categories
     real = real[~real["label"].isin([INCOME, TRANSFERS])]   # people's names never go into the model
+    real = real[real["payee"].str.strip().str.lower() != "unknown"]   # no name to learn from
     return pd.DataFrame({
         "payee": real["payee"].str.lower().str.strip(),
         "category": real["label"],

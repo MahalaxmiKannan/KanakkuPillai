@@ -12,21 +12,9 @@
     },
     "rule_coverage": 0.335
   },
-  "real_test": {
-    "rules_only": {
-      "accuracy": 0.111,
-      "macro_f1": 0.3,
-      "rows": 18
-    },
-    "rules_plus_ml": {
-      "accuracy": 0.278,
-      "macro_f1": 0.335,
-      "rows": 18
-    },
-    "rule_coverage": 0.111
-  },
+  "real_test": null,
   "training_rows": {
     "synthetic": 952,
-    "real": 87
+    "real": 29
   }
 }
