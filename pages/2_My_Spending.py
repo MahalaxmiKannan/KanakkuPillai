@@ -42,7 +42,9 @@ SOURCE_LABELS = {
 }
 
 mode = "dark" if st.context.theme.type == "dark" else "light"
-colors = dict(zip(SPENDING_CATEGORIES, SERIES[mode]))
+# The palette is validated for 8 categories; any further ones get neutral greys.
+EXTRA = {"light": ["#8a8984", "#b9b8b2"], "dark": ["#9d9c95", "#6c6b66"]}
+colors = dict(zip(SPENDING_CATEGORIES, SERIES[mode] + EXTRA[mode]))
 ink = INK[mode]
 PLOT_CONFIG = {"displayModeBar": False}
 

@@ -63,8 +63,7 @@ LOCAL = {
         "tnpdcl bill", "eb bill payment", "corporation water tax", "property tax online",
         "piped gas bill", "gas cylinder agency", "local cable tv", "wifi monthly plan",
         "fiber net services", "mobile prepaid topup", "dth topup", "postpaid bill",
-        "maintenance charges", "apartment association", "house rent", "room rent",
-        "pg rent", "laundry services", "iron shop monthly", "metro water", "sewage charges",
+        "maintenance charges", "apartment association", "laundry services", "iron shop monthly", "metro water", "sewage charges",
         "you broadband", "spectra internet", "excitel", "tikona networks", "landline bill",
         "insurance premium", "lic premium", "bike insurance", "loan emi",
     ],
@@ -75,6 +74,19 @@ LOCAL = {
         "github copilot", "perplexity pro", "claude pro", "midjourney", "strava", "headspace",
         "calm app", "times prime", "the hindu digital", "medium membership", "patreon",
         "substack", "scribd",
+    ],
+    "Rent": [
+        "house rent", "room rent", "pg rent", "flat rent", "monthly rent", "rent payment",
+        "hostel rent", "mess and rent", "landlord", "house owner", "rent for room",
+        "sri lakshmi pg", "green view pg", "comfort stay pg", "royal residency rent",
+        "balaji nilayam", "student hostel", "boys pg", "girls hostel", "shared flat rent",
+    ],
+    "Movies": [
+        "sathyam cinemas", "escape cinemas", "ags cinemas", "kasi theatre", "devi cineplex",
+        "luxe cinemas", "fame cinemas", "gold cinemas", "city multiplex", "fun cinemas",
+        "rohini silver screens", "vetri theatres", "pvr cinemas chennai", "inox forum",
+        "movie tickets", "film club", "imax screen", "drive in theatre", "sri murugan theatre",
+        "friday night shows",
     ],
     "Education": [
         "fiitjee", "aakash institute", "allen career", "narayana coaching", "ielts exam",
@@ -101,7 +113,7 @@ LAST = """kumar sharma reddy nair iyer patel singh raj krishnan menon pillai rao
 
 SUFFIXES = {"Food & dining": ["cafe", "hotel"], "Groceries": ["store", "mart"], "Shopping": ["store", "fashions"],
             "Travel": ["travels"], "Health": ["care"], "Education": ["academy"], "Bills & recharge": ["payment"],
-            "Subscriptions": ["subscription"]}
+            "Subscriptions": ["subscription"], "Rent": ["payment"], "Movies": ["tickets"]}
 
 
 def variants(name: str, category: str) -> list[str]:

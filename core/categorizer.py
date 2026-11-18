@@ -22,7 +22,7 @@ MODEL_PATH = Path(__file__).resolve().parents[1] / "models" / "categorizer.jobli
 
 SPENDING_CATEGORIES = [
     "Food & dining", "Groceries", "Travel", "Shopping",
-    "Bills & recharge", "Subscriptions", "Education", "Health",
+    "Bills & recharge", "Subscriptions", "Education", "Health","Rent","Movies"
 ]
 TRANSFERS = "Transfers (P2P)"
 INCOME = "Income"

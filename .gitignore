@@ -20,3 +20,4 @@ data/raw/*
 # OS junk
 .DS_Store
 Thumbs.db
+models/categorizer_with_real.joblib

@@ -46,6 +46,14 @@ MERCHANTS: dict[str, list[str]] = {
         "openai", "canva", "linkedin premium", "notion", "microsoft 365", "adobe", "tinder",
         "bumble",
     ],
+    "Rent": [
+        "rent", "house rent", "room rent", "pg rent", "flat rent", "landlord", "rental",
+        "nobroker rent", "cred rent", "nestaway", "stanza living", "zolo", "colive",
+    ],
+    "Movies": [
+        "pvr", "inox", "pvr inox", "bookmyshow", "book my show", "cinepolis", "carnival cinemas",
+        "miraj cinemas", "movie", "cinema", "cinemas", "theatre", "multiplex", "paytm movies",
+    ],
     "Education": [
         "udemy", "coursera", "byjus", "unacademy", "physicswallah", "vedantu", "upgrad",
         "simplilearn", "great learning", "scaler", "leetcode", "geeksforgeeks", "nptel",
