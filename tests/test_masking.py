@@ -8,6 +8,7 @@ from core.payee import clean_payee
     ("UPI/DR/412345678901/RAVI/SBIN/ravi.kumar99@okaxis/Pay", "ravi.kumar99", "ra***@okaxis"),
     ("UPI-KARTHIK-9876501234@YBL-YESB0YBLUPI", "9876501234", "@YBL"),
     ("Account Number 00000012345678901", "0000001234567", "8901"),
+    ("UPI-SWIGGY-swiggy@icici-412345678901", "swiggy@", "UPI-SWIGGY-"),
     ("POS 4123XXXXXXXX5678 AMAZON", "4123XXXX", "5678 AMAZON"),
 ])
 def test_mask_text_hides_ids(raw, hidden, kept):

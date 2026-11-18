@@ -8,7 +8,7 @@ import re
 import pandas as pd
 
 # name@handle, e.g. ravi.kumar99@okaxis or 9876543210@ybl
-UPI_ID = re.compile(r"\b([A-Za-z0-9._-]+)@([A-Za-z][A-Za-z0-9]+)\b")
+UPI_ID = re.compile(r"\b([A-Za-z0-9._]+)@([A-Za-z][A-Za-z0-9]+)\b")
 
 # Long digit runs: account numbers, card numbers, phone numbers, UPI refs.
 # Also catches partly-masked forms banks print, like 4123XXXXXXXX5678.
