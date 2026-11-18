@@ -14,6 +14,13 @@ UPI_ID = re.compile(r"\b([A-Za-z0-9._]+)@([A-Za-z][A-Za-z0-9]+)\b")
 # Also catches partly-masked forms banks print, like 4123XXXXXXXX5678.
 LONG_NUMBER = re.compile(r"\b[0-9Xx*]{5,}[0-9]{4}\b")
 
+# Digits stuck to letters, which LONG_NUMBER's word boundaries miss: CMP12345678901.
+GLUED_NUMBER = re.compile(r"\d{9,}")
+
+# SBI cuts UPI IDs short, often dropping the @handle, so UPI_ID can't see them.
+# Layout: UPI/DR/<ref>/<name>/<bank>/<upi id>/...
+UPI_ID_FIELD = re.compile(r"(UPI/(?:DR|CR)/[^/]*/[^/]*/[^/]*/)([^/]*)", re.IGNORECASE)
+
 
 def mask_upi_id(match: re.Match) -> str:
     """ravi.kumar99@okaxis -> ra***@okaxis"""
@@ -27,12 +34,22 @@ def mask_number(match: re.Match) -> str:
     return "X" * (len(text) - 4) + text[-4:]
 
 
+def mask_upi_id_field(match: re.Match) -> str:
+    """UPI/DR/1/RAVI/SBIN/ravi.kum/ -> UPI/DR/1/RAVI/SBIN/ra***/"""
+    prefix, value = match.group(1), match.group(2).strip()
+    if not value or "***" in value:        # empty, or already masked by UPI_ID
+        return match.group(0)
+    return f"{prefix}{value[:2]}***"
+
+
 def mask_text(text: str) -> str:
     """Mask UPI IDs first (they can contain digits), then long numbers."""
     if not isinstance(text, str):
         return text
     text = UPI_ID.sub(mask_upi_id, text)
-    return LONG_NUMBER.sub(mask_number, text)
+    text = UPI_ID_FIELD.sub(mask_upi_id_field, text)
+    text = LONG_NUMBER.sub(mask_number, text)
+    return GLUED_NUMBER.sub(mask_number, text)
 
 
 def mask_transactions(df: pd.DataFrame, column: str = "description") -> pd.DataFrame:

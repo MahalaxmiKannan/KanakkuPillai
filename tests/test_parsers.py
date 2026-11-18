@@ -65,6 +65,20 @@ def test_payees_are_extracted():
     assert "zomato ltd" in hdfc and "uber india" in hdfc and "blinkit" in hdfc
 
 
+def test_sbi_simple_export_with_date_and_details_headers():
+    """SBI also exports a plain table: Date, Details, Debit, Credit, Balance."""
+    csv = (
+        b"Date,Details,Debit,Credit,Balance\n"
+        b'10-10-2026,"WDL TFR\nUPI/DR/412345678901/SWIGGY/YESB/swiggy/ UPI 1234567890123 AT 01234 MAIN ROAD",250.5,,1000\n'
+        b"11-10-2026,DEP TFR UPI/CR/412345678902/RAVI K/SBIN/ravikumar/ UPI 1234567890123 AT 01234 MAIN ROAD,,500,1500\n"
+    )
+    df = parse_statement(csv, "sbi")
+    assert df["date"].tolist() == [pd.Timestamp("2026-10-10"), pd.Timestamp("2026-10-11")]
+    assert df["payee"].tolist() == ["swiggy", "ravi k"]
+    assert df["debit"].sum() == 250.5 and df["credit"].sum() == 500
+    assert "ravikumar" not in " ".join(df["description"])
+
+
 def test_wrong_bank_gives_friendly_error():
     with pytest.raises(StatementParseError, match="column headers"):
         parse_statement(DATA / "samples" / "sbi_sample.csv", "hdfc")

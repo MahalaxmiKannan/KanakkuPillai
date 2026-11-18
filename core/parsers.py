@@ -45,8 +45,8 @@ BANKS: dict[str, BankConfig] = {
     "sbi": BankConfig(
         name="SBI",
         columns={
-            "date": ["Txn Date", "Transaction Date"],
-            "description": ["Description", "Narration"],
+            "date": ["Txn Date", "Transaction Date", "Date"],
+            "description": ["Description", "Narration", "Details", "Particulars"],
             "debit": ["Debit", "Withdrawal"],
             "credit": ["Credit", "Deposit"],
             "balance": ["Balance"],
@@ -70,7 +70,7 @@ BANKS: dict[str, BankConfig] = {
         name="Standard CSV (any bank)",
         columns={
             "date": ["date"],
-            "description": ["description"],
+            "description": ["description", "details", "narration", "particulars"],
             "debit": ["debit"],
             "credit": ["credit"],
             "balance": ["balance"],
