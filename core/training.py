@@ -10,7 +10,7 @@ from sklearn.metrics import accuracy_score, f1_score
 from sklearn.model_selection import StratifiedGroupKFold
 from sklearn.pipeline import Pipeline
 
-from core.categorizer import CATEGORIES, INCOME, match_merchant
+from core.categorizer import CATEGORIES, INCOME, TRANSFERS, match_merchant
 
 NO_RULE = "(no rule matched)"
 
@@ -44,7 +44,7 @@ def load_real_labels(path: Path) -> pd.DataFrame:
     canonical = {c.lower(): c for c in CATEGORIES}        # "rent" -> "Rent"
     real["label"] = real["label"].str.strip().str.lower().map(canonical)
     real = real.dropna(subset=["label"])                    # drop labels that aren't categories
-    real = real[real["label"] != INCOME]                    # income is decided by rules
+    real = real[~real["label"].isin([INCOME, TRANSFERS])]   # people's names never go into the model
     return pd.DataFrame({
         "payee": real["payee"].str.lower().str.strip(),
         "category": real["label"],
