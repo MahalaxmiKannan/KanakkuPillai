@@ -8,10 +8,13 @@ setup_page("Home", "💰")
 st.markdown(
     """
 <div class="kp-hero">
-  <h1>💰 KanakkuPillai</h1>
+  <span class="kp-blob b1"></span><span class="kp-blob b2"></span>
+  <span class="kp-coin c1">🪙</span><span class="kp-coin c2">💸</span><span class="kp-coin c3">₹</span>
+  <h1>KanakkuPillai</h1>
   <div class="tag">Where does my ₹ go?</div>
   <p>See where your money goes, how much you can safely set aside, what the common savings and
   investment options really mean, and how to spot an investment scam. Made for people starting out.</p>
+  <div class="chips"><span class="chip">🔒 Never stored</span><span class="chip">🎓 Educational only</span><span class="chip">⚡ Takes 2 minutes</span></div>
 </div>
 """,
     unsafe_allow_html=True,
@@ -34,7 +37,7 @@ steps = [
     ("3", "Learn what to do next", "Find a safe amount to set aside, take a short quiz, and read plain-language guides."),
 ]
 for col, (num, title, text) in zip(st.columns(3), steps):
-    with col.container(border=True):
+    with col.container(border=True, key=f"card_step_{num}"):
         st.markdown(
             f'<div class="kp-num">{num}</div><div class="kp-card-title">{title}</div>'
             f'<div class="kp-card-text">{text}</div>',
@@ -53,7 +56,7 @@ tiles = [
 ]
 for row in (tiles[:3], tiles[3:]):
     for col, (icon, title, text, page) in zip(st.columns(3), row):
-        with col.container(border=True):
+        with col.container(border=True, key=f"card_tile_{title}"):
             st.markdown(
                 f'<div class="kp-card-icon">{icon}</div><div class="kp-card-title">{title}</div>'
                 f'<div class="kp-card-text">{text}</div>',
@@ -62,7 +65,7 @@ for row in (tiles[:3], tiles[3:]):
             st.page_link(page, label="Open →")
 
 st.markdown("&nbsp;", unsafe_allow_html=True)
-with st.container(border=True):
+with st.container(border=True, key="card_privacy"):
     st.markdown("🔒 **Your privacy.** Your file is processed in memory on the server and never saved. "
                 "Nothing here connects to your bank, and you can clear everything with **Delete my data**.")
     st.markdown("⚖️ **Not advice.** This app explains and shows; it never tells you to buy a particular stock, fund or scheme.")

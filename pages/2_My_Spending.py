@@ -161,7 +161,7 @@ page_header("My Spending", "📊", "Where your money went, by category, month an
 
 raw = st.session_state.get("transactions")
 if raw is None:
-    with st.container(border=True):
+    with st.container(border=True, key="card_empty_spending"):
         st.markdown("#### Nothing to show yet\nUpload your statement, or explore with a fictional student's account.")
         left, right, _ = st.columns([1, 1, 3])
         if left.button("Try the demo", type="primary", width="stretch"):
