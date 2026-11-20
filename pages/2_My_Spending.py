@@ -18,7 +18,7 @@ from core.spending import (
     summary,
     top_merchants,
 )
-from core.ui import clear_user_data, setup_page
+from core.ui import clear_user_data, load_categorized, setup_page
 
 setup_page("My Spending", "📊")
 
@@ -173,14 +173,7 @@ if raw is None:
     st.stop()
 
 # Categorize once per statement; corrections survive moving between pages.
-fingerprint = int(pd.util.hash_pandas_object(raw[["date", "description", "debit", "credit"]], index=False).sum())
-if st.session_state.get("categorized_for") != fingerprint:
-    st.session_state["categorized"] = categorize(raw)
-    st.session_state["categorized_for"] = fingerprint
-    st.session_state["category_overrides"] = {}
-    st.session_state["editor_version"] = 0
-
-df = apply_overrides(st.session_state["categorized"], st.session_state["category_overrides"])
+df = load_categorized()
 
 st.caption(f"Showing: {st.session_state.get('source_name', 'statement')}")
 if load_model() is None:

@@ -49,7 +49,12 @@ def main() -> None:
     if not frames:
         raise SystemExit("No readable statements found in data/raw/.")
 
-    rows = categorize(pd.concat(frames, ignore_index=True))
+    combined = pd.concat(frames, ignore_index=True)
+    # Statements can overlap; the running balance makes a repeat row unmistakable.
+    before = len(combined)
+    combined = combined.drop_duplicates(subset=["date", "debit", "credit", "balance"]).reset_index(drop=True)
+    print(f"Dropped {before - len(combined)} rows that appear in more than one statement.")
+    rows = categorize(combined)
     sheet = pd.DataFrame({
         "date": rows["date"].dt.strftime("%Y-%m-%d"),
         "payee": rows["payee"],
