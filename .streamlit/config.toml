@@ -1,5 +1,11 @@
 [theme]
 primaryColor = "#1B7F5C"
+baseRadius = "large"
+buttonRadius = "medium"
+showWidgetBorder = true
 
 [server]
 maxUploadSize = 5
+
+[client]
+toolbarMode = "minimal"

@@ -3,16 +3,14 @@ import streamlit as st
 
 from core.spending import format_inr
 from core.surplus import compute_surplus
-from core.ui import load_categorized, setup_page
+from core.ui import empty_state, load_categorized, page_header, setup_page
 
 setup_page("My Surplus", "🏦")
-st.title("🏦 My Surplus")
+page_header("My Surplus", "🏦", "What is left each month, and an emergency fund before anything else.", step=3)
 
 df = load_categorized()
 if df is None:
-    st.info("Load a statement first. Your surplus is worked out from it.")
-    if st.button("Go to Upload", type="primary"):
-        st.switch_page("pages/1_Upload.py")
+    empty_state("Your surplus is worked out from a statement, so load one first.", ("Go to Upload", "pages/1_Upload.py"))
     st.stop()
 
 st.caption(f"Showing: {st.session_state.get('source_name', 'statement')}")

@@ -3,11 +3,10 @@ from pathlib import Path
 
 import streamlit as st
 
-from core.ui import setup_page
+from core.ui import page_header, setup_page
 
 setup_page("Learn", "📚")
-st.title("📚 Learn")
-st.write("What the common options mean: how risky, how locked-in, how easy to get out of, and how they are taxed.")
+page_header("Learn", "📚", "What the common options mean: how risky, how locked-in, how easy to leave, and how they are taxed.", step=5)
 
 CONTENT = Path(__file__).resolve().parents[1] / "content"
 cards = sorted(CONTENT.glob("[0-9]_*.md"))

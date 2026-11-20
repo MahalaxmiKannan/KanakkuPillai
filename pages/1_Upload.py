@@ -4,13 +4,13 @@ from pathlib import Path
 import streamlit as st
 
 from core.parsers import BANKS, StatementParseError, find_balance_gaps, parse_statement, summarize
-from core.ui import clear_user_data, setup_page
+from core.ui import clear_user_data, page_header, setup_page
 
 setup_page("Upload", "📤")
 
 DEMO_FILE = Path(__file__).resolve().parents[1] / "data" / "demo_statement.csv"
 
-st.title("📤 Upload your statement")
+page_header("Upload your statement", "📤", "Add a statement, check it was read correctly, then move on.", step=1)
 
 st.success(
     "**Privacy:** your file is processed in memory on our server and never saved. "

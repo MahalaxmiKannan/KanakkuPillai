@@ -18,7 +18,7 @@ from core.spending import (
     summary,
     top_merchants,
 )
-from core.ui import clear_user_data, load_categorized, setup_page
+from core.ui import clear_user_data, load_categorized, page_header, setup_page
 
 setup_page("My Spending", "📊")
 
@@ -157,19 +157,20 @@ def reset_edits() -> None:
     st.session_state["editor_version"] += 1
 
 
-st.title("📊 My Spending")
+page_header("My Spending", "📊", "Where your money went, by category, month and merchant.", step=2)
 
 raw = st.session_state.get("transactions")
 if raw is None:
-    st.info("No statement loaded yet. Upload yours, or explore with a fictional student's account.")
-    left, right, _ = st.columns([1, 1, 2])
-    if left.button("Try the demo", type="primary", width="stretch"):
-        st.session_state["transactions"] = parse_statement(DEMO_FILE, "standard")
-        st.session_state["source_name"] = "Demo statement"
-        st.session_state["use_demo"] = True
-        st.rerun()
-    if right.button("Upload my statement", width="stretch"):
-        st.switch_page("pages/1_Upload.py")
+    with st.container(border=True):
+        st.markdown("#### Nothing to show yet\nUpload your statement, or explore with a fictional student's account.")
+        left, right, _ = st.columns([1, 1, 3])
+        if left.button("Try the demo", type="primary", width="stretch"):
+            st.session_state["transactions"] = parse_statement(DEMO_FILE, "standard")
+            st.session_state["source_name"] = "Demo statement"
+            st.session_state["use_demo"] = True
+            st.rerun()
+        if right.button("Upload my statement", width="stretch"):
+            st.switch_page("pages/1_Upload.py")
     st.stop()
 
 # Categorize once per statement; corrections survive moving between pages.

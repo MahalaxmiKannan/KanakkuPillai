@@ -2,11 +2,10 @@
 import streamlit as st
 
 from core.risk_quiz import QUESTIONS, result
-from core.ui import setup_page
+from core.ui import page_header, setup_page
 
 setup_page("Risk Quiz", "🧭")
-st.title("🧭 Risk Quiz")
-st.write("Nine questions about how you feel about risk. There are no right answers.")
+page_header("Risk Quiz", "🧭", "Nine questions about how you feel about risk. There are no right answers.", step=4)
 
 with st.form("risk_quiz"):
     picks = []
