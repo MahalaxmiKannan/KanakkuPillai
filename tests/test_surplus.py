@@ -91,3 +91,14 @@ def test_pages_render():
     at.run()
     at.switch_page("pages/3_My_Surplus.py").run()   # no statement loaded: friendly message, no crash
     assert not at.exception
+
+
+def test_flipbook_builds_every_chapter():
+    from pathlib import Path
+    from core.flipbook import build_book, load_chapters, md_to_html
+
+    chapters = load_chapters(Path(__file__).resolve().parents[1] / "content")
+    assert len(chapters) == 7 and all(c["teaser"] for c in chapters)
+    book = build_book(chapters)
+    assert book.count('class="leaf"') == 8          # cover + one leaf per chapter
+    assert "<script>alert" not in md_to_html("<script>alert(1)</script>")   # escaped
