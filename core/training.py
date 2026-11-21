@@ -23,13 +23,13 @@ def build_pipeline() -> Pipeline:
     ])
 
 
-def group_split(data: pd.DataFrame, seed: int = 42) -> tuple[pd.DataFrame, pd.DataFrame]:
-    """80/20 split that keeps every spelling of a merchant on the same side.
+def group_split(data: pd.DataFrame, seed: int = 42, n_splits: int = 5) -> tuple[pd.DataFrame, pd.DataFrame]:
+    """Split (1/n_splits held out, 20% by default) that keeps every spelling of a merchant on the same side.
 
     Without this, 'kumar stores' in training and 'kumar store' in the test set
     would make the score look better than it really is.
     """
-    splitter = StratifiedGroupKFold(n_splits=5, shuffle=True, random_state=seed)
+    splitter = StratifiedGroupKFold(n_splits=n_splits, shuffle=True, random_state=seed)
     train_idx, test_idx = next(splitter.split(data, data["category"], data["merchant_group"]))
     return data.iloc[train_idx], data.iloc[test_idx]
 
