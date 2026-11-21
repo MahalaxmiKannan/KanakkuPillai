@@ -1,0 +1,40 @@
+{
+  "data": {
+    "first_month": "2007-10",
+    "last_month": "2026-10",
+    "months": 229
+  },
+  "target_coverage": 0.8,
+  "windows": [
+    {
+      "years": 3,
+      "windows": 194,
+      "non_overlapping": 6,
+      "band_10": 0.916,
+      "band_90": 1.486,
+      "coverage": 0.99,
+      "below_band": 0.01,
+      "above_band": 0.0
+    },
+    {
+      "years": 5,
+      "windows": 170,
+      "non_overlapping": 3,
+      "band_10": 0.92,
+      "band_90": 1.769,
+      "coverage": 0.994,
+      "below_band": 0.006,
+      "above_band": 0.0
+    },
+    {
+      "years": 10,
+      "windows": 110,
+      "non_overlapping": 1,
+      "band_10": 0.999,
+      "band_90": 2.743,
+      "coverage": 1.0,
+      "below_band": 0.0,
+      "above_band": 0.0
+    }
+  ]
+}
