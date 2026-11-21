@@ -30,8 +30,24 @@ def test_bootstrap_uses_real_blocks_in_order():
 def test_daily_to_monthly_drops_unfinished_month():
     days = pd.bdate_range("2026-01-01", "2026-03-10")
     daily = pd.DataFrame({"Date": days, "Close": np.linspace(100, 120, len(days))})
-    m = daily_to_monthly(daily)
+    m = daily_to_monthly(daily, as_of="2026-03-11")
     assert list(m["month"]) == ["2026-02"]                  # Jan has no prior month, Mar isn't finished
+
+
+def test_daily_to_monthly_keeps_month_ending_on_holiday():
+    # 31 Mar 2026 is a Tuesday; pretend the market was shut, so data ends on Mon 30 Mar.
+    days = pd.bdate_range("2026-01-01", "2026-03-30")
+    daily = pd.DataFrame({"Date": days, "Close": np.linspace(100, 120, len(days))})
+    m = daily_to_monthly(daily, as_of="2026-04-02")
+    assert list(m["month"]) == ["2026-02", "2026-03"]
+
+
+def test_daily_to_monthly_drops_month_still_running_on_last_weekday():
+    # Data reaches the last weekday, but the month isn't over when we run.
+    days = pd.bdate_range("2026-01-01", "2026-03-31")
+    daily = pd.DataFrame({"Date": days, "Close": np.linspace(100, 120, len(days))})
+    assert list(daily_to_monthly(daily, as_of="2026-03-31")["month"]) == ["2026-02"]
+    assert list(daily_to_monthly(daily, as_of="2026-04-01")["month"]) == ["2026-02", "2026-03"]
 
 
 def test_simulate_shapes_and_order():

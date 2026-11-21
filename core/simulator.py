@@ -21,14 +21,22 @@ PATHS = 10_000
 PERCENTILES = (10, 50, 90)
 
 
-def daily_to_monthly(daily: pd.DataFrame) -> pd.DataFrame:
-    """Month-end closes and monthly returns. Drops the current, unfinished month."""
+def daily_to_monthly(daily: pd.DataFrame, as_of: pd.Timestamp | None = None) -> pd.DataFrame:
+    """Month-end closes and monthly returns. Drops the last month unless it is finished.
+
+    The last month counts as finished only if `as_of` (default: today) is in a later
+    month AND the data reaches its final week. Checking against the last weekday
+    alone would wrongly drop a full month whose last weekday was a market holiday.
+    """
     d = daily[["Date", "Close"]].dropna().copy()
     d["Date"] = pd.to_datetime(d["Date"])
     d = d.sort_values("Date")
     month_end = d.groupby(d["Date"].dt.to_period("M")).last()
     last_day = d["Date"].iloc[-1]
-    if last_day < last_day + pd.offsets.BMonthEnd(0):   # data stops before the month's last weekday
+    as_of = pd.Timestamp(as_of) if as_of is not None else pd.Timestamp.today()
+    month_over = as_of.to_period("M") > last_day.to_period("M")
+    reaches_final_week = last_day >= last_day + pd.offsets.MonthEnd(0) - pd.Timedelta(days=6)
+    if not (month_over and reaches_final_week):
         month_end = month_end.iloc[:-1]
     out = pd.DataFrame({"month": month_end.index.astype(str), "close": month_end["Close"].round(2).values})
     out["return"] = out["close"].pct_change()

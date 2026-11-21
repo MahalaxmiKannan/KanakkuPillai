@@ -30,7 +30,8 @@ with st.sidebar:
     monthly = st.number_input("Monthly amount (₹)", min_value=100, max_value=1_000_000, value=max(default, 100), step=500)
     if surplus and surplus["safe_to_set_aside"] > 0:
         st.caption(f"Filled in from My Surplus ({format_inr(surplus['safe_to_set_aside'])} a month).")
-    years = st.slider("Years", 1, 20, 10)
+    years = st.slider("Years", 1, 15, 10)
+    st.caption("Up to 15 years: the history is only about 19 years long, so longer paths would mostly repeat the same stretches.")
     adjust = st.toggle("Show in today's money (adjust for inflation)", value=True)
     inflation = st.number_input("Inflation per year (%)", 0.0, 15.0, 6.0, 0.5, disabled=not adjust) / 100
     fd_rate = st.number_input("FD / RD rate per year (%)", 0.0, 12.0, 7.0, 0.25) / 100
@@ -74,7 +75,9 @@ with st.expander("Assumptions and limits", expanded=True):
 - **Price index only:** dividends are not included, so this slightly understates an index fund. **No fees, taxes or expense ratio** are taken off.
 - The FD line assumes the rate stays fixed for the whole period.
 - {"Values are divided by inflation of " + f"{inflation:.1%}" + " a year, so they show buying power today." if adjust else "Values are not adjusted for inflation."}
+- **These ranges come from 2007 to 2026 only, and that may be kinder than the future.** Over that stretch the index rose about 8.3% a year, not counting dividends.
 - **Past returns don't predict future returns.** The real range could be wider than this.
+- Years are capped at 15 because a 20-year path built from about 19 years of history would mostly reuse the same stretches.
 """
     )
 st.page_link("pages/7_Scam_Checker.py", label="Next: Scam checker →")
