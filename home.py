@@ -1,71 +1,47 @@
-"""Home page of KanakkuPillai."""
+"""Home page of KanakkuPillai: one screen, name + tagline, and the app as a roadmap."""
 import streamlit as st
+import streamlit.components.v1 as components
 
+from core.roadmap import build_roadmap
 from core.ui import setup_page
 
 setup_page("Home", "💰")
 
+# Home only: tighter spacing so everything fits on one screen.
 st.markdown(
     """
-<div class="kp-hero">
-  <span class="kp-blob b1"></span><span class="kp-blob b2"></span>
-  <span class="kp-coin c1">🪙</span><span class="kp-coin c2">💸</span><span class="kp-coin c3">₹</span>
-  <h1>KanakkuPillai</h1>
-  <div class="tag">Where does my ₹ go?</div>
-  <p>See where your money goes, how much you can safely set aside, what the common savings and
-  investment options really mean, and how to spot an investment scam. Made for people starting out.</p>
-  <div class="chips"><span class="chip">🔒 Never stored</span><span class="chip">🎓 Educational only</span><span class="chip">⚡ Takes 2 minutes</span></div>
-</div>
+<style>
+  .block-container { padding-top: 1.2rem !important; padding-bottom: 0 !important; }
+  .kp-top { display:flex; align-items:flex-end; gap:1rem; margin: .1rem 0 .2rem; }
+  .kp-brand { font-size: clamp(2rem, 4.2vw, 3.1rem); font-weight: 800; letter-spacing: -0.03em; line-height: 1;
+    background: linear-gradient(90deg, #e11d48, #f5a524 45%, #1B7F5C 80%); background-size: 200% auto;
+    -webkit-background-clip: text; background-clip: text; color: transparent; animation: kpShift 8s ease infinite; }
+  .kp-tagline { font-size: clamp(1rem, 1.6vw, 1.25rem); font-weight: 600; opacity: .85; margin-top: .35rem; }
+  .kp-tagline span { opacity: .7; font-weight: 400; }
+  iframe[title="streamlit_components_v1.html"], .stIFrame { display:block; }
+  .kp-foot { font-size: .8rem; opacity: .65; text-align: center; margin-top: -.4rem; }
+</style>
 """,
     unsafe_allow_html=True,
 )
 
-cta1, cta2, _ = st.columns([1, 1, 2])
-if cta1.button("Upload my statement", type="primary", width="stretch"):
+left, b1, b2 = st.columns([3.2, 1, 1], vertical_alignment="bottom")
+left.markdown(
+    '<div class="kp-brand">KanakkuPillai</div>'
+    '<div class="kp-tagline">Where does my ₹ go? <span>From wasting it to investing it wisely.</span></div>',
+    unsafe_allow_html=True,
+)
+if b1.button("Upload my statement", type="primary", width="stretch"):
     st.session_state["use_demo"] = False
     st.switch_page("pages/1_Upload.py")
-if cta2.button("Try the demo", width="stretch"):
+if b2.button("Try the demo", width="stretch"):
     st.session_state["use_demo"] = True
     st.switch_page("pages/1_Upload.py")
-st.caption("The demo uses a fictional student's account, so you can look around without sharing anything.")
 
-st.markdown("&nbsp;", unsafe_allow_html=True)
-st.subheader("How it works")
-steps = [
-    ("1", "Add a statement", "Upload a bank statement or load the demo. Account numbers and UPI IDs are masked straight away."),
-    ("2", "See the picture", "Your spending is sorted into categories. Fix any that are wrong and every chart updates."),
-    ("3", "Learn what to do next", "Find a safe amount to set aside, take a short quiz, and read plain-language guides."),
-]
-for col, (num, title, text) in zip(st.columns(3), steps):
-    with col.container(border=True, key=f"card_step_{num}"):
-        st.markdown(
-            f'<div class="kp-num">{num}</div><div class="kp-card-title">{title}</div>'
-            f'<div class="kp-card-text">{text}</div>',
-            unsafe_allow_html=True,
-        )
+components.html(build_roadmap(dark=st.context.theme.type == "dark"), height=450, scrolling=False)
 
-st.markdown("&nbsp;", unsafe_allow_html=True)
-st.subheader("What's inside")
-tiles = [
-    ("📊", "My Spending", "Categories, monthly trend, top merchants and subscriptions.", "pages/2_My_Spending.py"),
-    ("🏦", "My Surplus", "Income, essentials and an emergency fund before anything else.", "pages/3_My_Surplus.py"),
-    ("🧭", "Risk Quiz", "Nine questions about how you feel about risk.", "pages/4_Risk_Quiz.py"),
-    ("📚", "Learn", "Savings, FD, RD, PPF, index funds, gold and NPS explained.", "pages/5_Learn.py"),
-    ("📈", "Simulator", "A range of possible outcomes for a monthly SIP. Coming soon.", "pages/6_Simulator.py"),
-    ("🚨", "Scam Checker", "Paste a message and see its red flags. Coming soon.", "pages/7_Scam_Checker.py"),
-]
-for row in (tiles[:3], tiles[3:]):
-    for col, (icon, title, text, page) in zip(st.columns(3), row):
-        with col.container(border=True, key=f"card_tile_{title}"):
-            st.markdown(
-                f'<div class="kp-card-icon">{icon}</div><div class="kp-card-title">{title}</div>'
-                f'<div class="kp-card-text">{text}</div>',
-                unsafe_allow_html=True,
-            )
-            st.page_link(page, label="Open →")
-
-st.markdown("&nbsp;", unsafe_allow_html=True)
-with st.container(border=True, key="card_privacy"):
-    st.markdown("🔒 **Your privacy.** Your file is processed in memory on the server and never saved. "
-                "Nothing here connects to your bank, and you can clear everything with **Delete my data**.")
-    st.markdown("⚖️ **Not advice.** This app explains and shows; it never tells you to buy a particular stock, fund or scheme.")
+st.markdown(
+    '<div class="kp-foot">🔒 Your statement is processed in memory and never saved · '
+    "Tap any stop to jump there · The demo uses a fictional student's account</div>",
+    unsafe_allow_html=True,
+)
