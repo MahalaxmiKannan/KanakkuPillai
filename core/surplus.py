@@ -67,3 +67,37 @@ def compute_surplus(
         "left_after_fund": safe - to_fund,
         "months_to_fund": (gap / to_fund) if to_fund > 0 and gap > 0 else 0.0,
     }
+
+
+def avoidable_per_month(df: pd.DataFrame) -> float:
+    """Average monthly spend on the avoidable categories (food delivery, shopping, subscriptions)."""
+    from core.spending import AVOIDABLE_CATEGORIES
+    months = max(month_count(df), 1)
+    return float(by_category(df).reindex(AVOIDABLE_CATEGORIES, fill_value=0).sum()) / months
+
+
+def months_to_full(monthly: float, saved: float, target: float) -> float | None:
+    """Months of setting aside `monthly` until the emergency fund hits `target`. None if it never will."""
+    if target <= saved:
+        return 0.0
+    if monthly <= 0:
+        return None
+    return (target - saved) / monthly
+
+
+def runway(monthly: float, saved: float, target: float, horizon: int) -> list[float]:
+    """Emergency fund balance after each month from now (0 to horizon), capped at the target."""
+    return [min(target, saved + monthly * m) for m in range(horizon + 1)]
+
+
+def describe_duration(months: float | None) -> str:
+    """'under a month', '11 months', '8.6 years', or 'not reachable at this pace'."""
+    if months is None:
+        return "not reachable at this pace"
+    if months <= 0:
+        return "already full"
+    if months < 1:
+        return "under a month"
+    if months < 24:
+        return f"{int(-(-months // 1))} months"
+    return f"{months / 12:.1f} years"

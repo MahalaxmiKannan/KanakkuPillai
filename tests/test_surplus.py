@@ -102,3 +102,38 @@ def test_flipbook_builds_every_chapter():
     book = build_book(chapters)
     assert book.count('class="leaf"') == 8          # cover + one leaf per chapter
     assert "<script>alert" not in md_to_html("<script>alert(1)</script>")   # escaped
+
+
+def test_runway_helpers():
+    from core.surplus import avoidable_per_month, describe_duration, months_to_full, runway
+    assert months_to_full(1000, 0, 10000) == 10
+    assert months_to_full(0, 0, 10000) is None
+    assert months_to_full(500, 20000, 10000) == 0.0
+    assert runway(4000, 0, 10000, 4) == [0, 4000, 8000, 10000, 10000]      # capped at the target
+    assert describe_duration(None) == "not reachable at this pace"
+    assert describe_duration(0.4) == "under a month"
+    assert describe_duration(10.2) == "11 months"
+    assert describe_duration(103) == "8.6 years"
+    rows = pd.DataFrame([
+        {"date": pd.Timestamp("2026-01-10"), "payee": "swiggy", "debit": 600.0, "credit": 0.0, "category": "Food & dining"},
+        {"date": pd.Timestamp("2026-02-10"), "payee": "swiggy", "debit": 400.0, "credit": 0.0, "category": "Food & dining"},
+        {"date": pd.Timestamp("2026-02-11"), "payee": "dmart", "debit": 900.0, "credit": 0.0, "category": "Groceries"},
+    ])
+    assert avoidable_per_month(rows) == 500.0                               # 1000 over 2 months, groceries excluded
+
+
+def test_surplus_page_renders_and_lever_changes_the_plan():
+    from pathlib import Path
+    from streamlit.testing.v1 import AppTest
+    from core.parsers import parse_statement
+    root = Path(__file__).resolve().parents[1]
+    at = AppTest.from_file(str(root / "pages" / "3_My_Surplus.py"), default_timeout=90)
+    at.session_state["transactions"] = parse_statement(root / "data" / "demo_statement.csv", "standard")
+    at.run()
+    assert not at.exception
+    base = at.session_state["surplus"]["safe_to_set_aside"]
+    assert base > 0
+    at.slider[0].set_value(60).run()
+    assert not at.exception
+    assert at.session_state["surplus"]["safe_to_set_aside"] == base            # the page keeps the real figure; only the lever is a what-if
+    assert any("With the trim" in m.value for m in at.markdown)
