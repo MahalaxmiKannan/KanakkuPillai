@@ -81,7 +81,7 @@ def test_backtest_reports_coverage():
 
 
 def test_home_story_data_is_consistent():
-    from core.roadmap import chapters, story_data
+    from core.scrollstory import build_story, chapters, story_data
     d = story_data()
     assert d["income"] >= d["spend"] >= 0
     assert abs(sum(i["value"] for i in d["items"]) - d["income"]) <= len(d["items"])   # rounding only
@@ -89,3 +89,7 @@ def test_home_story_data_is_consistent():
     s = d["sim"]
     assert len(s["p50"]) == s["years"] * 12 and s["p10"][-1] < s["p50"][-1] < s["p90"][-1]
     assert len(chapters(d)) == 8
+    assert len(s["paths"]) > 0 and len(s["paths"][0]) == 120
+    assert len(d["txs"]) == 14 and d["masks"] and "@" in d["masks"][0]["raw"]
+    html = build_story(d)
+    assert "__DATA__" not in html and "kp-root" in html

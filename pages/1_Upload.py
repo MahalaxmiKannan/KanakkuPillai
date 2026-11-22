@@ -19,6 +19,11 @@ st.success(
     icon="🔒",
 )
 
+# The home page's "Try the demo" link arrives as /upload?demo=1. Use it once, then clear it.
+if st.query_params.get("demo") == "1":
+    st.session_state["use_demo"] = True
+    del st.query_params["demo"]
+
 source = st.radio(
     "What would you like to analyse?",
     ["My own statement", "Demo statement (fictional student)"],
