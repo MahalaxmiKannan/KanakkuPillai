@@ -1,37 +1,100 @@
-"""Home-page story: Ananya walks the app's steps, from wasting money to investing wisely.
+"""Home-page story: one month of money, from "where did it go?" to a plan, told with the demo statement's real numbers.
 
-The reader moves the story (Next / Back, arrow keys, swipe, or tapping a stop).
-Rendered with components.html; pure SVG + vanilla JS, no external files.
+The reader moves the story (Next / Back, arrow keys, swipe, dots, or a stop's link).
+Rendered with components.html; pure SVG + vanilla JS, no external files, no character art.
 """
 from __future__ import annotations
 
 import json
+from pathlib import Path
 
-# title, story text, mood 0..1, url path of the page (None for the opening), thing she holds
-STAGES = [
-    ("Payday", "Ananya, 21, gets her first salary: ₹28,000. Ten days later the account is nearly empty, "
-     "and she honestly can't say where it went.", 0.00, None, "phone"),
-    ("Upload", "She downloads her bank statement and drops it in. Account numbers and UPI IDs are "
-     "masked before anything else happens, and nothing is saved.", 0.12, "upload", "paper"),
-    ("My Spending", "Every payment, sorted. Food delivery: ₹3,200 a month. Two subscriptions she forgot "
-     "she even had. Seeing it is the turning point.", 0.26, "my-spending", "glass"),
-    ("My Surplus", "Income minus essentials leaves about ₹6,000 a month. The first job for that money "
-     "is an emergency fund, so the first coins go into the piggy bank.", 0.42, "my-surplus", "coin"),
-    ("Risk Quiz", "Nine quick questions. She's 'Moderate': fine with some ups and downs, "
-     "not fine with losing sleep over them.", 0.56, "risk-quiz", "compass"),
-    ("Learn", "She flips through the Money Handbook: savings account, FD, RD, PPF, index funds, gold "
-     "and NPS. What each one is, how locked-in, how it's taxed.", 0.70, "learn", "book"),
-    ("Simulator", "₹3,000 a month for 10 years, replayed 10,000 times on real Nifty 50 history. "
-     "Not a promise: a range of outcomes, with an FD line to compare.", 0.85, "simulator", "chart"),
-    ("Scam Checker", "A WhatsApp message offers 'guaranteed 30% a month'. She pastes it in: high risk, "
-     "three red flags. She deletes it and keeps her SIP going.", 1.00, "scam-checker", "shield"),
-]
+from core.categorizer import INCOME, TRANSFERS, categorize
+from core.parsers import parse_statement
+from core.simulator import load_monthly_returns, simulate
+from core.spending import format_inr
+from core.surplus import ESSENTIAL_CATEGORIES, compute_surplus
+
+AVOIDABLE = ["Food & dining", "Shopping", "Subscriptions"]
+SIP_YEARS = 10
+INFLATION = 0.06
+DEMO_FILE = Path(__file__).resolve().parent.parent / "data" / "demo_statement.csv"
 
 
-def build_roadmap(dark: bool = False) -> str:
-    stages = json.dumps([{"name": n, "text": t, "mood": m, "url": u, "item": i} for n, t, m, u, i in STAGES],
-                        ensure_ascii=False)
-    return TEMPLATE.replace("__STAGES__", stages).replace("__THEME__", "dark" if dark else "light")
+def story_data() -> dict:
+    """Numbers for the story, all computed from the demo statement and the Nifty history."""
+    df = categorize(parse_statement(DEMO_FILE, "standard"))
+    r = compute_surplus(df)
+    spent = df[(df["debit"] > 0) & (~df["category"].isin([INCOME, TRANSFERS]))]
+    per_month = (spent.groupby("category")["debit"].sum() / r["months"]).sort_values(ascending=False)
+
+    def group(c: str) -> str:
+        return "essential" if c in ESSENTIAL_CATEGORIES else "avoid" if c in AVOIDABLE else "other"
+
+    order = ["essential", "avoid", "other"]
+    items = [{"name": c, "value": round(float(v)), "group": group(c)} for c, v in per_month.items()]
+    items.sort(key=lambda it: (order.index(it["group"]), -it["value"]))
+    spend = float(per_month.sum())
+    income = float(r["income"])
+    left = max(0.0, income - spend)
+    items.append({"name": "Left over", "value": round(left), "group": "left"})
+
+    avoidable = float(per_month[per_month.index.isin(AVOIDABLE)].sum())
+    # A what-if: a third of the avoidable spend, plus whatever is already left over.
+    monthly = max(100, int(round((left + avoidable / 3) / 100.0)) * 100)
+    sim = simulate(float(monthly), SIP_YEARS, load_monthly_returns()["return"].to_numpy(), INFLATION)
+
+    def series(a) -> list[int]:
+        return [int(round(x)) for x in a]
+
+    return {
+        "income": round(income), "spend": round(spend), "left": round(left), "avoidable": round(avoidable),
+        "tx": int(len(df)), "items": items,
+        "emergency": {"target": round(r["emergency_target"]), "saved": round(r["emergency_saved"])},
+        "sim": {
+            "monthly": monthly, "years": SIP_YEARS,
+            "p10": series(sim["bands"][10]), "p50": series(sim["bands"][50]), "p90": series(sim["bands"][90]),
+            "invested": series(sim["invested"]), "fd": series(sim["fd"]),
+        },
+    }
+
+
+def chapters(d: dict) -> list[dict]:
+    """Title, card text, headline figure, mood (0 to 1) and page for each step."""
+    f = format_inr
+    sim = d["sim"]
+    lo, mid, hi = sim["p10"][-1], sim["p50"][-1], sim["p90"][-1]
+    return [
+        dict(name="Payday", url=None, mood=0.0, head=dict(value=d["income"], inr=True, cap="came in, in an average month"),
+             text=f"A fictional student earns {f(d['income'])} a month. By the end of it almost all of it has gone, "
+                  "and it's hard to say where. This is the demo account; yours would show your own numbers."),
+        dict(name="Upload", url="upload", mood=0.12, head=dict(value=d["tx"], cap="transactions read and masked"),
+             text=f"Upload a bank statement (SBI, HDFC or a standard CSV). Here, {d['tx']} transactions are read, and "
+                  "account numbers and UPI IDs are masked before anything else happens. Nothing is saved."),
+        dict(name="My Spending", url="my-spending", mood=0.26, head=dict(value=d["avoidable"], inr=True, cap="a month on avoidable spending"),
+             text=f"Every payment is sorted into a category. About {f(d['avoidable'])} a month goes on food delivery, "
+                  "shopping and subscriptions, the part most people can change. Fix any category the app gets wrong and every chart updates."),
+        dict(name="My Surplus", url="my-surplus", mood=0.42, head=dict(value=d["left"], inr=True, cap="left over each month"),
+             text=f"Income minus spending leaves {f(d['left'])} a month. Before taking any investment risk, the app asks for an "
+                  f"emergency fund first: three months of essentials, {f(d['emergency']['target'])} here."),
+        dict(name="Risk Quiz", url="risk-quiz", mood=0.56, head=dict(text="Moderate", cap="example risk profile"),
+             text="Nine questions about time horizon, emergency cover and how you react to losses. An example result: "
+                  "'Moderate', a score of 18 out of 27, comfortable with some ups and downs. It describes comfort with risk, nothing more."),
+        dict(name="Learn", url="learn", mood=0.70, head=dict(value=7, cap="options, compared"),
+             text="Seven options in plain language: savings account, FD, RD, PPF, index fund, gold and NPS. How easy it is to take "
+                  "money out, how much it can swing and how it's taxed. The chart is illustrative, not advice."),
+        dict(name="Simulator", url="simulator", mood=0.85, head=dict(value=mid, inr=True, cap=f"middle case after {sim['years']} years, in today's money"),
+             text=f"A what-if: if a third of that avoidable spending went into a monthly SIP, that's about {f(sim['monthly'])} a month. "
+                  f"Real Nifty 50 history is replayed 10,000 times. After {sim['years']} years, in today's money: a bad case of {f(lo)}, "
+                  f"a middle case of {f(mid)}, a good case of {f(hi)}. A range, not a prediction."),
+        dict(name="Scam Checker", url="scam-checker", mood=1.0, head=dict(text="High risk", cap="3 red flags in this message"),
+             text="Paste any investment message and the checker highlights its red flags. This example promises guaranteed returns, "
+                  "asks for an upfront fee and moves you to a private Telegram group. Deleting it costs nothing."),
+    ]
+
+
+def build_roadmap(data: dict, dark: bool = False) -> str:
+    payload = json.dumps({**data, "stages": chapters(data)}, ensure_ascii=False)
+    return TEMPLATE.replace("__DATA__", payload).replace("__THEME__", "dark" if dark else "light")
 
 
 TEMPLATE = r"""<!doctype html><html><head><meta charset="utf-8"><style>
@@ -43,22 +106,24 @@ html,body{margin:0;height:100%;background:transparent;font-family:"Source Sans P
   background:linear-gradient(125deg,#0f5c43,#1B7F5C,#14b8a6,#0f766e);background-size:300% 300%;animation:shift 14s ease infinite}
 @keyframes shift{0%{background-position:0% 50%}50%{background-position:100% 50%}100%{background-position:0% 50%}}
 .blob{position:absolute;border-radius:50%;filter:blur(40px);pointer-events:none}
-.b1{width:260px;height:260px;background:#f5a524;opacity:.35;right:-70px;bottom:-110px}
-.b2{width:220px;height:220px;background:#7c5cff;opacity:.22;left:30%;top:-120px}
-.stage{position:relative;flex:1.65;min-width:0;border-radius:18px;background:rgba(255,255,255,.10);border:1px solid rgba(255,255,255,.22);overflow:hidden}
-.stage svg{width:100%;height:100%;display:block}
+.b1{width:260px;height:260px;background:#f5a524;opacity:.28;right:-70px;bottom:-110px}
+.b2{width:220px;height:220px;background:#7c5cff;opacity:.18;left:30%;top:-120px}
+.stage{position:relative;flex:1.7;min-width:0;border-radius:18px;background:rgba(3,28,21,.55);border:1px solid rgba(255,255,255,.14);overflow:hidden;color:#fff}
+.stage svg{position:absolute;inset:0;width:100%;height:100%;display:block}
+.stage svg text{font-family:inherit}
+.scene{transition:opacity .55s ease}
 .card{position:relative;flex:1;min-width:0;display:flex;flex-direction:column;border-radius:18px;padding:18px 20px 14px;
   background:var(--card);color:var(--ink);box-shadow:0 18px 40px -22px rgba(0,0,0,.5)}
-.kicker{font-size:.78rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#1B7F5C}
+.kicker{font-size:.76rem;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:#1B7F5C}
 .dark .kicker{color:#5eead4}
-h2{margin:.25rem 0 .55rem;font-size:1.55rem;line-height:1.15;letter-spacing:-.02em}
-.text{font-size:1.02rem;line-height:1.55;color:var(--ink);opacity:.9;flex:1}
+h2{margin:.25rem 0 .55rem;font-size:1.5rem;line-height:1.15;letter-spacing:-.02em}
+.text{font-size:1rem;line-height:1.55;color:var(--ink);opacity:.9;flex:1;overflow:auto}
 .fade{animation:fade .45s ease both}
-@keyframes fade{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
-.meter{display:flex;align-items:center;gap:8px;font-size:.74rem;font-weight:700;margin:.4rem 0 .7rem}
-.meter .bar{position:relative;flex:1;height:8px;border-radius:99px;background:var(--line)}
-.meter .fill{position:absolute;inset:0 auto 0 0;border-radius:99px;background:linear-gradient(90deg,#f59e0b,#14b8a6,#1B7F5C);transition:width .9s cubic-bezier(.3,.8,.3,1)}
-.open{display:inline-block;margin-bottom:.6rem;font-weight:700;color:#1B7F5C;text-decoration:none;cursor:pointer;font-size:.95rem}
+@keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+.meter{display:flex;align-items:center;gap:8px;font-size:.72rem;font-weight:700;margin:.35rem 0 .65rem}
+.meter .bar{position:relative;flex:1;height:6px;border-radius:99px;background:var(--line)}
+.meter .fill{position:absolute;inset:0 auto 0 0;border-radius:99px;background:linear-gradient(90deg,#e9a23b,#14b8a6,#1B7F5C);transition:width .9s cubic-bezier(.3,.8,.3,1)}
+.open{display:inline-block;margin:.5rem 0;font-weight:700;color:#1B7F5C;text-decoration:none;cursor:pointer;font-size:.95rem}
 .dark .open{color:#5eead4}
 .open:hover{text-decoration:underline}
 .nav{display:flex;align-items:center;gap:10px;border-top:1px solid var(--line);padding-top:12px}
@@ -71,17 +136,27 @@ h2{margin:.25rem 0 .55rem;font-size:1.55rem;line-height:1.15;letter-spacing:-.02
 .dot{flex:0 0 auto;width:8px;height:8px;border-radius:50%;border:0;padding:0;background:var(--line);cursor:pointer;transition:width .3s}
 .dot.on{background:#1B7F5C;width:18px;border-radius:99px}
 .hint{font-size:.72rem;color:var(--muted);margin-top:6px;text-align:right}
-.node{cursor:pointer}
-#girl,#fx,#pigWrap,#cloud,#sun{pointer-events:none}
-@keyframes rain{from{transform:translateY(-6px)}to{transform:translateY(14px);opacity:0}}
-.drop{animation:rain .8s linear infinite}
-@keyframes spin{to{transform:rotate(360deg)}}
-#rays{animation:spin 30s linear infinite}
-@keyframes wiggle{0%,100%{transform:rotate(0)}25%{transform:rotate(-6deg)}75%{transform:rotate(6deg)}}
-#pig{transform-box:fill-box;transform-origin:50% 100%}
-.wiggle{animation:wiggle .35s ease 2}
-@keyframes twinkle{0%,100%{opacity:0;transform:scale(.4)}50%{opacity:1;transform:scale(1)}}
-.spark{animation:twinkle 1.6s ease-in-out infinite;transform-box:fill-box;transform-origin:center}
+.pop{opacity:0;transform-box:fill-box;transform-origin:center}
+.go .pop{animation:pop .5s cubic-bezier(.3,1.4,.5,1) forwards}
+@keyframes pop{from{opacity:0;transform:scale(.3)}to{opacity:1;transform:none}}
+.scam{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:center;gap:10px;padding:19% 8% 6%;opacity:0;pointer-events:none;transition:opacity .55s ease}
+.scam.show{opacity:1}
+.msg{background:#f4f7f5;color:#1d2b26;border-radius:14px 14px 14px 4px;padding:12px 14px;font-size:13.5px;line-height:1.5;box-shadow:0 10px 30px -14px rgba(0,0,0,.6);max-width:430px}
+.msg .from{font-size:11px;font-weight:700;color:#6b7c75;margin-bottom:4px}
+.msg p{margin:0 0 6px}
+mark{color:inherit;background:linear-gradient(rgba(224,122,95,.45),rgba(224,122,95,.45)) no-repeat left/0% 100%;transition:background-size .7s ease;border-radius:3px;padding:0 1px}
+.scam.show mark{background-size:100% 100%}
+.scam.show mark[data-n="1"]{transition-delay:.7s}.scam.show mark[data-n="2"]{transition-delay:1.3s}.scam.show mark[data-n="3"]{transition-delay:1.9s}
+.flags{list-style:none;margin:0;padding:0;display:flex;flex-wrap:wrap;gap:6px 8px;font-size:12.5px}
+.flags li{opacity:0;transform:translateY(6px);transition:all .45s ease;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.2);border-radius:99px;padding:3px 10px 3px 4px;display:flex;align-items:center;gap:6px}
+.flags b{display:inline-grid;place-items:center;width:18px;height:18px;border-radius:50%;background:#e07a5f;color:#fff;font-size:11px}
+.scam.show .flags li{opacity:1;transform:none}
+.scam.show .flags li:nth-child(1){transition-delay:.9s}.scam.show .flags li:nth-child(2){transition-delay:1.5s}.scam.show .flags li:nth-child(3){transition-delay:2.1s}
+.risk{display:flex;align-items:center;gap:10px;font-size:12.5px;max-width:430px}
+.rbar{flex:1;height:7px;border-radius:99px;background:rgba(255,255,255,.18);overflow:hidden}
+.rbar i{display:block;height:100%;width:0;background:linear-gradient(90deg,#e9c46a,#e07a5f);transition:width 1s ease 2.4s;border-radius:99px}
+.scam.show .rbar i{width:92%}
+.narrow .catlab{display:none}
 @media (max-width:640px){
   .frame{flex-direction:column;padding:10px;gap:10px}
   .stage{flex:0 0 42%}
@@ -90,216 +165,213 @@ h2{margin:.25rem 0 .55rem;font-size:1.55rem;line-height:1.15;letter-spacing:-.02
   .text{font-size:.9rem;line-height:1.4}
   .meter{margin:.2rem 0 .4rem}
   .hint{display:none}
+  .msg{font-size:12px;padding:9px 11px}.flags{font-size:11px}
+  .scam{padding:20% 5% 4%;gap:7px}
 }
-@media (prefers-reduced-motion: reduce){*{animation:none!important;transition:none!important}}
+@media (prefers-reduced-motion: reduce){*{animation:none!important;transition:none!important}.pop{opacity:1}}
 </style></head><body class="__THEME__">
 <div class="frame">
  <span class="blob b1"></span><span class="blob b2"></span>
  <div class="stage" id="stage">
- <svg id="s" viewBox="0 0 600 380" preserveAspectRatio="xMidYMid meet" aria-hidden="true">
+ <svg id="s" viewBox="0 0 640 400" preserveAspectRatio="xMidYMid meet" aria-hidden="true">
   <defs>
-   <linearGradient id="pigG" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffc4d6"/><stop offset="1" stop-color="#f48fb1"/></linearGradient>
-   <radialGradient id="coinG" cx=".35" cy=".35"><stop offset="0" stop-color="#fff3b0"/><stop offset=".6" stop-color="#f5c542"/><stop offset="1" stop-color="#c8901a"/></radialGradient>
-   <linearGradient id="goldFill" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffe27a"/><stop offset="1" stop-color="#e0a82e"/></linearGradient>
-   <clipPath id="belly"><ellipse cx="0" cy="0" rx="46" ry="35"/></clipPath>
-   <linearGradient id="hill1" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffffff" stop-opacity=".18"/><stop offset="1" stop-color="#ffffff" stop-opacity=".04"/></linearGradient>
+   <linearGradient id="fadeG" gradientUnits="userSpaceOnUse" x1="82" y1="0" x2="430" y2="0">
+    <stop offset="0" stop-color="#fff" stop-opacity="1"/><stop id="fadeEnd" offset="1" stop-color="#fff" stop-opacity="0"/></linearGradient>
+   <mask id="fade" maskUnits="userSpaceOnUse" x="0" y="0" width="640" height="400"><rect width="640" height="400" fill="url(#fadeG)"/></mask>
+   <clipPath id="simClip"><rect id="simClipRect" x="70" y="40" width="0" height="330"/></clipPath>
+   <linearGradient id="bandG" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#5eead4" stop-opacity=".5"/><stop offset="1" stop-color="#5eead4" stop-opacity=".16"/></linearGradient>
   </defs>
-  <rect id="glow" x="-300" y="-300" width="1200" height="980" fill="#fff6d5" opacity="0"/>
-  <g id="cloud" transform="translate(70,58)">
-   <g fill="#e2e8f0" opacity=".9"><circle cx="0" cy="0" r="16"/><circle cx="18" cy="-8" r="20"/><circle cx="38" cy="0" r="15"/><rect x="0" y="0" width="38" height="15" rx="7"/></g>
-   <g stroke="#bfdbfe" stroke-width="2.4" stroke-linecap="round">
-    <line class="drop" x1="6" y1="22" x2="3" y2="30"/><line class="drop" x1="20" y1="22" x2="17" y2="30" style="animation-delay:-.3s"/><line class="drop" x1="34" y1="22" x2="31" y2="30" style="animation-delay:-.55s"/>
+  <text id="headNum" x="34" y="46" font-size="34" font-weight="700" fill="#fff" letter-spacing="-.5"></text>
+  <text id="headCap" x="36" y="64" font-size="12.5" fill="#fff" fill-opacity=".72"></text>
+
+  <g id="g_flow" class="scene">
+   <g id="ribbons" mask="url(#fade)"></g>
+   <g id="leftBar"></g><g id="rightBar"></g>
+   <g id="catLabels" class="catlab"></g>
+   <g id="sumLabels" opacity="0">
+    <text id="sumSpent" x="448" y="150" font-size="14" font-weight="600" fill="#fff"></text>
+    <text id="sumLeft" x="448" y="290" font-size="14" font-weight="600" fill="#e9c46a"></text>
+    <rect x="448" y="304" width="164" height="8" rx="4" fill="#fff" fill-opacity=".16"/>
+    <rect id="tankFill" x="448" y="304" width="0" height="8" rx="4" fill="#e9c46a"/>
+    <text id="tankTxt" x="448" y="330" font-size="11" fill="#fff" fill-opacity=".75"></text>
+    <text x="448" y="344" font-size="11" fill="#fff" fill-opacity=".55">3 months of essentials, built first</text>
+   </g>
+   <g id="q" opacity="0"><text x="448" y="222" font-size="20" font-style="italic" fill="#fff" fill-opacity=".9">Where did it go?</text></g>
+   <g id="chips" opacity="0">
+    <g transform="translate(448,150)"><rect width="164" height="26" rx="13" fill="#fff" fill-opacity=".12" stroke="#fff" stroke-opacity=".25"/><path d="M12,13 l4,4 l7,-8" stroke="#5eead4" stroke-width="2" fill="none" stroke-linecap="round"/><text id="chipTx" x="30" y="17.5" font-size="11.5" fill="#fff"></text></g>
+    <g transform="translate(448,186)"><rect width="164" height="26" rx="13" fill="#fff" fill-opacity=".12" stroke="#fff" stroke-opacity=".25"/><path d="M12,13 l4,4 l7,-8" stroke="#5eead4" stroke-width="2" fill="none" stroke-linecap="round"/><text x="30" y="17.5" font-size="11.5" fill="#fff">Account numbers masked</text></g>
+    <g transform="translate(448,222)"><rect width="164" height="26" rx="13" fill="#fff" fill-opacity=".12" stroke="#fff" stroke-opacity=".25"/><path d="M12,13 l4,4 l7,-8" stroke="#5eead4" stroke-width="2" fill="none" stroke-linecap="round"/><text x="30" y="17.5" font-size="11.5" fill="#fff">Nothing is saved</text></g>
    </g>
   </g>
-  <g id="sun" transform="translate(84,62)" opacity="0">
-   <g id="rays" stroke="#fde68a" stroke-width="3" stroke-linecap="round">
-    <line x1="0" y1="-30" x2="0" y2="-38"/><line x1="0" y1="30" x2="0" y2="38"/><line x1="-30" y1="0" x2="-38" y2="0"/><line x1="30" y1="0" x2="38" y2="0"/>
-    <line x1="21" y1="21" x2="27" y2="27"/><line x1="-21" y1="-21" x2="-27" y2="-27"/><line x1="21" y1="-21" x2="27" y2="-27"/><line x1="-21" y1="21" x2="-27" y2="27"/>
-   </g>
-   <circle r="22" fill="#fcd34d"/><circle r="22" fill="#fff7d6" opacity=".35"/>
+
+  <g id="g_risk" class="scene" opacity="0">
+    <rect x="90" y="190" width="460" height="10" rx="5" fill="#fff" fill-opacity=".14"/>
+    <rect x="90" y="190" width="153" height="10" rx="5" fill="#8fc7b1" fill-opacity=".8"/>
+    <rect x="233" y="190" width="174" height="10" fill="#14b8a6" fill-opacity=".9"/>
+    <rect x="397" y="190" width="153" height="10" rx="5" fill="#e9a23b" fill-opacity=".85"/>
+    <g font-size="14" font-weight="600" fill="#fff" text-anchor="middle">
+     <text x="166" y="238">Conservative</text><text x="320" y="238">Moderate</text><text x="474" y="238">Aggressive</text></g>
+    <g font-size="11" fill="#fff" fill-opacity=".65" text-anchor="middle">
+     <text x="166" y="256">prefers stability</text><text x="320" y="256">accepts some ups and downs</text><text x="474" y="256">comfortable with big swings</text>
+     <text x="166" y="150">score 9 to 15</text><text x="320" y="150">16 to 21</text><text x="474" y="150">22 to 27</text></g>
+    <g id="riskMark"><path d="M0,178 l-8,-14 h16z" fill="#fff"/><circle cx="0" cy="195" r="11" fill="#fff" stroke="#0f5c43" stroke-width="3"/></g>
+    <text x="320" y="300" font-size="11.5" fill="#fff" fill-opacity=".6" text-anchor="middle">Nine questions · an example result, not a recommendation</text>
   </g>
-  <path d="M0,300 C90,250 170,270 260,240 S430,220 600,250 L900,250 L900,700 L-300,700 L-300,300Z" fill="url(#hill1)"/>
-  <path d="M0,335 C120,300 250,330 360,305 S520,290 600,300 L900,300 L900,700 L-300,700 L-300,335Z" fill="#ffffff" opacity=".07"/>
-  <path id="road" d="M36,338 C120,340 130,262 205,268 S300,330 352,292 S392,198 450,206 S520,250 548,170"
-    fill="none" stroke="rgba(255,255,255,.28)" stroke-width="26" stroke-linecap="round"/>
-  <path id="roadDone" d="M36,338 C120,340 130,262 205,268 S300,330 352,292 S392,198 450,206 S520,250 548,170"
-    fill="none" stroke="#fcd34d" stroke-opacity=".55" stroke-width="26" stroke-linecap="round"/>
-  <path d="M36,338 C120,340 130,262 205,268 S300,330 352,292 S392,198 450,206 S520,250 548,170"
-    fill="none" stroke="rgba(255,255,255,.75)" stroke-width="2" stroke-dasharray="8 10"/>
-  <g id="nodes"></g>
-  <g id="pigWrap" transform="translate(420,92)">
-   <g id="pig">
-    <ellipse cx="2" cy="44" rx="44" ry="6" fill="#000" opacity=".15"/>
-    <rect x="-30" y="22" width="11" height="20" rx="5" fill="#f48fb1"/><rect x="18" y="22" width="11" height="20" rx="5" fill="#f48fb1"/>
-    <path d="M44,-4 c12,-6 14,8 4,6 c-8,-2 -2,-12 6,-10" fill="none" stroke="#f48fb1" stroke-width="3" stroke-linecap="round"/>
-    <ellipse cx="0" cy="0" rx="46" ry="35" fill="url(#pigG)"/>
-    <g clip-path="url(#belly)"><rect id="pigLevel" x="-50" y="35" width="100" height="80" fill="url(#goldFill)" opacity=".75"/>
-     <g id="pigCoins" opacity="0"><circle cx="-20" cy="24" r="7" fill="url(#coinG)"/><circle cx="-4" cy="28" r="7" fill="url(#coinG)"/><circle cx="12" cy="23" r="7" fill="url(#coinG)"/><circle cx="26" cy="29" r="7" fill="url(#coinG)"/></g>
-    </g>
-    <ellipse cx="0" cy="0" rx="46" ry="35" fill="none" stroke="#e57399" stroke-width="2"/>
-    <ellipse cx="-16" cy="-14" rx="16" ry="8" fill="#fff" opacity=".35"/>
-    <rect x="-14" y="-37" width="28" height="6" rx="3" fill="#7a2948"/>
-    <path d="M-30,-26 L-38,-46 L-18,-33Z" fill="#f48fb1" stroke="#e57399" stroke-width="1.5"/>
-    <ellipse cx="-47" cy="4" rx="10" ry="12" fill="#ffb3c9" stroke="#e57399" stroke-width="2"/>
-    <circle cx="-49" cy="0" r="2" fill="#a23b62"/><circle cx="-49" cy="8" r="2" fill="#a23b62"/>
-    <circle cx="-28" cy="-10" r="3.6" fill="#3b1d2a"/><circle cx="-27" cy="-11.3" r="1.2" fill="#fff"/>
-    <path d="M-36,10 q3,4 7,1" stroke="#a23b62" stroke-width="1.6" fill="none" stroke-linecap="round"/>
-   </g>
-   <g id="sparks" opacity="0" fill="#fff7d6">
-    <path class="spark" d="M-58,-40 l3,-8 l3,8 l8,3 l-8,3 l-3,8 l-3,-8 l-8,-3z"/>
-    <path class="spark" style="animation-delay:-.6s" d="M52,-46 l2,-6 l2,6 l6,2 l-6,2 l-2,6 l-2,-6 l-6,-2z"/>
-    <path class="spark" style="animation-delay:-1.1s" d="M60,30 l2,-5 l2,5 l5,2 l-5,2 l-2,5 l-2,-5 l-5,-2z"/>
-   </g>
+
+  <g id="g_learn" class="scene" opacity="0">
+   <g stroke="#fff" stroke-opacity=".25"><line x1="110" y1="330" x2="580" y2="330"/><line x1="110" y1="330" x2="110" y2="96"/></g>
+   <text x="345" y="358" font-size="11.5" fill="#fff" fill-opacity=".7" text-anchor="middle">How long your money is locked in  →</text>
+   <text transform="translate(78,213) rotate(-90)" font-size="11.5" fill="#fff" fill-opacity=".7" text-anchor="middle">How much it can grow or swing  →</text>
+   <g id="learnDots"></g>
+   <text x="345" y="378" font-size="10.5" fill="#fff" fill-opacity=".5" text-anchor="middle">Illustrative positions to show the trade-off, not advice</text>
   </g>
-  <g id="fx"></g>
-  <g id="girl">
-   <ellipse cx="0" cy="1" rx="17" ry="4" fill="#000" opacity=".22"/>
-   <g id="fig">
-    <g id="legB" transform="translate(0,-46)"><line x1="0" y1="0" x2="0" y2="22" stroke="#24323f" stroke-width="7" stroke-linecap="round"/>
-     <g id="shinB" transform="translate(0,22)"><line x1="0" y1="0" x2="0" y2="22" stroke="#24323f" stroke-width="6" stroke-linecap="round"/><path d="M-3,20 h11 a3,3 0 0 1 0,5 h-11z" fill="#111827"/></g></g>
-    <g id="armB" transform="translate(0,-84)"><line x1="0" y1="0" x2="0" y2="17" stroke="#c98c5a" stroke-width="5" stroke-linecap="round"/>
-     <g id="foreB" transform="translate(0,17)"><line x1="0" y1="0" x2="0" y2="16" stroke="#c98c5a" stroke-width="4.5" stroke-linecap="round"/></g></g>
-    <path id="top" d="M-11,-88 Q0,-92 11,-88 L13,-56 Q15,-46 12,-40 L-12,-40 Q-15,-46 -13,-56Z" fill="#94a3b8"/>
-    <path d="M-10,-87 Q4,-70 12,-58" stroke="#f5a524" stroke-width="4" fill="none" stroke-linecap="round" opacity=".9"/>
-    <g id="legF" transform="translate(0,-46)"><line x1="0" y1="0" x2="0" y2="22" stroke="#334155" stroke-width="7" stroke-linecap="round"/>
-     <g id="shinF" transform="translate(0,22)"><line x1="0" y1="0" x2="0" y2="22" stroke="#334155" stroke-width="6" stroke-linecap="round"/><path d="M-3,20 h11 a3,3 0 0 1 0,5 h-11z" fill="#1f2937"/></g></g>
-    <g id="head" transform="translate(0,-92)">
-     <rect x="-3" y="-6" width="6" height="8" fill="#d9a066"/>
-     <path id="pony" d="M-10,-22 Q-22,-14 -18,2 Q-15,-8 -9,-14Z" fill="#1c120d"/>
-     <ellipse cx="0" cy="-17" rx="11" ry="12.5" fill="#e0ac69"/>
-     <path d="M-11.5,-17 Q-12,-31 0,-31 Q12,-31 11.5,-17 Q8,-26 0,-26 Q-6,-26 -11.5,-17Z" fill="#1c120d"/>
-     <circle cx="-11" cy="-15" r="2.4" fill="#d9a066"/>
-     <ellipse cx="3" cy="-17" rx="1.5" ry="1.9" fill="#1c120d"/><ellipse cx="8.5" cy="-17" rx="1.4" ry="1.8" fill="#1c120d"/>
-     <path id="brow" d="M1,-21 L5,-21.5 M7,-21.5 L10.5,-21" stroke="#1c120d" stroke-width="1.2" stroke-linecap="round"/>
-     <circle cx="10" cy="-12" r="2.2" fill="#f08a8a" opacity=".35"/>
-     <path id="mouth" d="M3,-10 Q6,-9 9,-10" stroke="#8b2c1d" stroke-width="1.6" fill="none" stroke-linecap="round"/>
-    </g>
-    <g id="armF" transform="translate(0,-84)"><line x1="0" y1="0" x2="0" y2="17" stroke="#e0ac69" stroke-width="5" stroke-linecap="round"/>
-     <g id="foreF" transform="translate(0,17)"><line x1="0" y1="0" x2="0" y2="16" stroke="#e0ac69" stroke-width="4.5" stroke-linecap="round"/>
-      <g id="hand" transform="translate(0,17)"></g></g></g>
+
+  <g id="g_sim" class="scene" opacity="0">
+   <g id="simAxes"></g>
+   <g clip-path="url(#simClip)">
+    <path id="simBand" fill="url(#bandG)"/>
+    <polyline id="simInv" fill="none" stroke="#fff" stroke-opacity=".6" stroke-width="1.6" stroke-dasharray="2 4"/>
+    <polyline id="simFd" fill="none" stroke="#e9c46a" stroke-width="1.8" stroke-dasharray="7 5"/>
+    <polyline id="simMid" fill="none" stroke="#5eead4" stroke-width="3" stroke-linejoin="round"/>
    </g>
+   <g id="simEnds" opacity="0"></g>
+   <text id="simLegend" x="90" y="392" font-size="10" fill="#fff" fill-opacity=".65"></text>
   </g>
  </svg>
+ <div class="scam" id="scam">
+  <div class="msg"><div class="from">Unknown number · WhatsApp</div>
+   <p><mark data-n="1">Guaranteed 30% returns every month.</mark> Only a few seats left!</p>
+   <p>Pay a <mark data-n="2">₹5,000 joining fee</mark> today and we'll add you to our <mark data-n="3">private Telegram group</mark>.</p></div>
+  <ul class="flags"><li><b>1</b>Guaranteed returns</li><li><b>2</b>Upfront fee</li><li><b>3</b>Moves you off the app</li></ul>
+  <div class="risk"><span>Risk</span><div class="rbar"><i></i></div><b>High</b></div>
+ </div>
  </div>
  <div class="card" id="card" aria-live="polite">
   <div class="kicker" id="kicker"></div>
   <h2 id="title"></h2>
-  <div class="meter"><span style="color:#d97706">Wasting</span><span class="bar"><span class="fill" id="fill"></span></span><span style="color:#1B7F5C">Investing wisely</span></div>
+  <div class="meter"><span style="color:#c27a10">Wasting</span><span class="bar"><span class="fill" id="fill"></span></span><span style="color:#1B7F5C">Investing wisely</span></div>
   <div class="text" id="text"></div>
   <a class="open" id="open" href="#"></a>
   <div class="nav"><button class="btn back" id="back">← Back</button><div class="dots" id="dots"></div><button class="btn next" id="next">Start →</button></div>
-  <div class="hint">Use ← → keys, swipe, or tap a stop on the road</div>
+  <div class="hint">Use ← → keys, swipe, or tap the dots</div>
  </div>
 </div>
 <script>
-const ST=__STAGES__, N=ST.length, NS='http://www.w3.org/2000/svg';
-const $=id=>document.getElementById(id);
-const road=$('road'), L=road.getTotalLength(), reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
-const frac=i=>0.03+0.94*i/(N-1), pt=f=>road.getPointAtLength(L*f);
-const mix=(a,b,t)=>{const p=h=>[1,3,5].map(i=>parseInt(h.slice(i,i+2),16)),A=p(a),B=p(b);
-  return '#'+A.map((v,i)=>Math.round(v+(B[i]-v)*t).toString(16).padStart(2,'0')).join('')};
-$('roadDone').style.strokeDasharray=L; $('roadDone').style.strokeDashoffset=L;
+const D=__DATA__, ST=D.stages, N=ST.length, NS='http://www.w3.org/2000/svg';
+const $=id=>document.getElementById(id), svg=(tag,at={},par)=>{const e=document.createElementNS(NS,tag);for(const k in at)e.setAttribute(k,at[k]);par&&par.appendChild(e);return e};
+const reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
+if(innerWidth<640) document.body.classList.add('narrow');
+const inr=n=>'₹'+Math.round(n).toLocaleString('en-IN');
+const ease=t=>1-Math.pow(1-t,3), lerp=(a,b,t)=>a+(b-a)*t;
+function tween(d,fn,done){ if(reduce)d=0; const t0=performance.now(); let id;
+  (function f(now){const t=d?Math.min(1,(now-t0)/d):1; fn(ease(t)); if(t<1)id=requestAnimationFrame(f); else done&&done();})(t0);
+  return()=>cancelAnimationFrame(id);}
+const hex=h=>[1,3,5].map(i=>parseInt(h.slice(i,i+2),16));
+const lighten=(h,k)=>hex(h).map(v=>Math.round(v+(255-v)*k));
 
-// things she holds, drawn small in her front hand
-const ITEMS={
- phone:'<rect x="-4" y="-2" width="9" height="15" rx="2" fill="#111827"/><rect x="-2.5" y="0" width="6" height="10" rx="1" fill="#60a5fa"/>',
- paper:'<rect x="-4" y="-4" width="14" height="18" rx="1.5" fill="#fff" stroke="#cbd5e1"/><line x1="-1" y1="1" x2="7" y2="1" stroke="#94a3b8"/><line x1="-1" y1="5" x2="7" y2="5" stroke="#94a3b8"/><line x1="-1" y1="9" x2="5" y2="9" stroke="#94a3b8"/>',
- glass:'<circle cx="4" cy="2" r="6" fill="#bae6fd" fill-opacity=".5" stroke="#334155" stroke-width="2"/><line x1="0" y1="7" x2="-4" y2="13" stroke="#334155" stroke-width="2.5" stroke-linecap="round"/>',
- coin:'<circle cx="3" cy="3" r="7" fill="url(#coinG)" stroke="#b7791f"/><text x="3" y="6.5" font-size="9" font-weight="800" text-anchor="middle" fill="#7c4a03">₹</text>',
- compass:'<circle cx="3" cy="3" r="7" fill="#fff" stroke="#334155" stroke-width="1.5"/><path d="M3,-2 L5,3 L3,8 L1,3Z" fill="#e11d48"/>',
- book:'<rect x="-5" y="-3" width="16" height="12" rx="1.5" fill="#1B7F5C"/><line x1="3" y1="-3" x2="3" y2="9" stroke="#fff" stroke-width="1"/>',
- chart:'<rect x="-5" y="-4" width="16" height="14" rx="2" fill="#fff" stroke="#cbd5e1"/><polyline points="-3,7 1,4 4,5 9,-1" fill="none" stroke="#1B7F5C" stroke-width="1.8"/>',
- shield:'<path d="M3,-5 L11,-2 Q11,8 3,12 Q-5,8 -5,-2Z" fill="#14b8a6" stroke="#0f766e"/><path d="M0,3 l2.5,2.5 l5,-5" stroke="#fff" stroke-width="1.6" fill="none"/>'};
-
-ST.forEach((s,i)=>{const p=pt(frac(i)),g=document.createElementNS(NS,'g');g.setAttribute('class','node');g.dataset.i=i;
-  g.innerHTML=`<circle cx="${p.x}" cy="${p.y}" r="11" fill="rgba(255,255,255,.85)" stroke="#fff" stroke-width="2"/><text x="${p.x}" y="${p.y+4}" font-size="11" font-weight="800" text-anchor="middle" fill="#0f5c43">${i}</text>`;
-  g.addEventListener('click',()=>go(i)); $('nodes').appendChild(g);});
-const nodes=[...$('nodes').children];
-ST.forEach((s,i)=>{const b=document.createElement('button');b.className='dot';b.setAttribute('aria-label',`${i}. ${s.name}`);b.onclick=()=>go(i);$('dots').appendChild(b)});
-const dots=[...$('dots').children];
-
-// how she looks at a given mood (0 wasting .. 1 wise)
-function look(m){
-  $('cloud').setAttribute('opacity',Math.max(0,1-2*m)); $('sun').setAttribute('opacity',Math.min(1,Math.max(0,(m-.3)*1.8)));
-  $('glow').setAttribute('opacity',(m*.16).toFixed(3));
-  $('top').setAttribute('fill',mix('#94a3b8','#0f9d6e',m));
-  $('mouth').setAttribute('d',`M3,-10 Q6,${-10+5*(m-.3)} 9,-10`);
-  $('brow').setAttribute('d',m<.25?'M1,-20.5 L5,-22 M7,-22 L10.5,-20.5':'M1,-21.5 L5,-22 M7,-22 L10.5,-21.5');
-  $('head').setAttribute('transform',`translate(0,-92) rotate(${(1-m)*9})`);
-  $('fig').setAttribute('transform',`rotate(${(1-m)*3})`);
+/* ---------- money flow ---------- */
+const items=D.items, n=items.length, T=84, H=266, total=Math.max(D.income,D.spend), s=H/total;
+const GC={essential:'#6fb39d',avoid:'#e07a5f',other:'#c9b88f',left:'#e9c46a'}, NEUTRAL=hex('#e2f4ec');
+const hh=items.map(it=>Math.max(2.2,it.value*s)); let acc=T; const y0=hh.map(h=>{const y=acc;acc+=h;return y});
+const gi={}; const colors=items.map(it=>{const k=gi[it.group]=(gi[it.group]??-1)+1; return lighten(GC[it.group],Math.min(.4,k*.09))});
+const yc=i=>T+i*((H-12)/(n-1))+6;
+const rib=items.map(()=>svg('path',{},$('ribbons'))), lb=items.map(()=>svg('rect',{x:70,width:12},$('leftBar'))), rb=items.map(()=>svg('rect',{x:430,width:8},$('rightBar')));
+items.forEach((it,i)=>{const g=svg('g',{},$('catLabels'));
+  g.innerHTML=`<text x="448" font-size="12" fill="#fff" fill-opacity=".92">${it.name}</text><text x="612" font-size="12" fill="#fff" fill-opacity=".7" text-anchor="end">${inr(it.value)}</text>`});
+const catG=[...$('catLabels').children];
+function target(step){
+  const S={end:[0,.45,1,1][step]??1,lc:step===2?1:0,ls:step===3?1:0,chip:step===1?1:0,q:step===0?1:0,it:[]};
+  let cum=0;
+  items.forEach((it,i)=>{
+    let yt,ht=hh[i],col,op;
+    if(step<=1){yt=y0[i];col=NEUTRAL;op=step?.6:.55}
+    else if(step===2){yt=yc(i)-ht/2;col=colors[i];op=.88}
+    else if(it.group==='left'){yt=292;ht=Math.max(6,hh[i]);col=colors[i];op=1}
+    else{ht=hh[i]*.6;yt=T+14+cum;cum+=ht;col=colors[i];op=.3}
+    S.it.push({yt,ht,r:col[0],g:col[1],b:col[2],op});
+  });
+  return S;
 }
-function pigFill(v){ $('pigLevel').setAttribute('y',35-70*v); $('pigCoins').setAttribute('opacity',v>0?1:0); $('sparks').setAttribute('opacity',v>=.99?1:0);}
-const save=i=>Math.max(0,(ST[i].mood-.35)/.65);
-
-// a natural walk: hips, knees, shoulders and elbows swing out of phase
-function pose(phase,walking){
-  const a=walking?Math.sin(phase):-0.22, k=walking?Math.max(0,Math.sin(phase+1.3)):0, k2=walking?Math.max(0,Math.sin(phase+1.3+Math.PI)):0;
-  $('legF').setAttribute('transform',`translate(0,-46) rotate(${-24*a})`); $('shinF').setAttribute('transform',`translate(0,22) rotate(${32*k})`);
-  $('legB').setAttribute('transform',`translate(0,-46) rotate(${24*a})`);  $('shinB').setAttribute('transform',`translate(0,22) rotate(${32*k2})`);
-  $('armF').setAttribute('transform',`translate(0,-84) rotate(${walking?20*a:-8})`); $('foreF').setAttribute('transform',`translate(0,17) rotate(${walking?-25:-70})`);
-  $('armB').setAttribute('transform',`translate(0,-84) rotate(${-20*a})`); $('foreB').setAttribute('transform','translate(0,17) rotate(-20)');
-  $('pony').setAttribute('transform',`rotate(${walking?6*Math.sin(phase*2):0} -10 -20)`);
-  return walking?Math.abs(Math.cos(phase))*2.2:0;
+const mixS=(a,b,t)=>({end:lerp(a.end,b.end,t),lc:lerp(a.lc,b.lc,t),ls:lerp(a.ls,b.ls,t),chip:lerp(a.chip,b.chip,t),q:lerp(a.q,b.q,t),
+  it:a.it.map((x,i)=>{const y=b.it[i],o={};for(const k in x)o[k]=lerp(x[k],y[k],t);return o})});
+function render(S){
+  $('fadeEnd').setAttribute('stop-opacity',S.end.toFixed(3));
+  S.it.forEach((p,i)=>{const col=`rgb(${p.r|0},${p.g|0},${p.b|0})`, x0=82, x1=430, c=(x1-x0)*.5, ya=y0[i], ha=hh[i];
+    rib[i].setAttribute('d',`M${x0},${ya} C${x0+c},${ya} ${x1-c},${p.yt} ${x1},${p.yt} L${x1},${p.yt+p.ht} C${x1-c},${p.yt+p.ht} ${x0+c},${ya+ha} ${x0},${ya+ha}Z`);
+    rib[i].setAttribute('fill',col); rib[i].setAttribute('fill-opacity',p.op.toFixed(3));
+    lb[i].setAttribute('y',ya); lb[i].setAttribute('height',ha); lb[i].setAttribute('fill',col);
+    rb[i].setAttribute('y',p.yt); rb[i].setAttribute('height',p.ht); rb[i].setAttribute('fill',col); rb[i].setAttribute('fill-opacity',(p.op*S.end).toFixed(3));
+    catG[i].setAttribute('transform',`translate(0,${p.yt+p.ht/2+4})`);
+  });
+  $('catLabels').setAttribute('opacity',S.lc.toFixed(3)); $('sumLabels').setAttribute('opacity',S.ls.toFixed(3));
+  $('chips').setAttribute('opacity',S.chip.toFixed(3)); $('q').setAttribute('opacity',S.q.toFixed(3));
 }
-function place(f,phase,walking){const p=pt(f),q=pt(Math.min(1,f+.003)),r=pt(Math.max(0,f-.003));
-  const dir=(q.x-r.x)>=0?1:-1, bob=pose(phase,walking);
-  $('girl').setAttribute('transform',`translate(${p.x},${p.y-2-bob}) scale(${dir*.95},.95)`);
-  $('roadDone').style.strokeDashoffset=L*(1-f);}
+$('sumSpent').textContent=`Spent ${inr(D.spend)} a month`; $('sumLeft').textContent=`Left over ${inr(D.left)} a month`;
+$('tankTxt').textContent=`Emergency fund: ${inr(D.emergency.saved)} of ${inr(D.emergency.target)}`;
+$('tankFill').setAttribute('width',Math.max(2,164*D.emergency.saved/D.emergency.target)); $('chipTx').textContent=`${D.tx} transactions read`;
+let S=target(0), flowCancel=()=>{}; render(S);
 
-// effects: notes flying away while wasting, coins dropping into the pig when saving
-function here(){const m=$('girl').transform.baseVal.consolidate().matrix;return {x:m.e,y:m.f}}
-function burstNotes(){const p=here();
-  for(let n=0;n<5;n++)setTimeout(()=>fly(p.x+8,p.y-70,p.x+40+Math.random()*120,p.y-140-Math.random()*90,'note',900),n*140);}
-function dropCoins(count){const p=here();
-  for(let n=0;n<count;n++)setTimeout(()=>fly(p.x+6,p.y-60,420,52,'coin',950,()=>{const g=$('pig');g.classList.remove('wiggle');void g.getBBox();g.classList.add('wiggle')}),n*220);}
-function fly(x0,y0,x1,y1,kind,d,done){const g=document.createElementNS(NS,'g');
-  g.innerHTML=kind==='coin'?'<circle r="7" fill="url(#coinG)" stroke="#b7791f"/><text y="3.5" font-size="9" font-weight="800" text-anchor="middle" fill="#7c4a03">₹</text>'
-   :'<rect x="-9" y="-5" width="18" height="10" rx="1.5" fill="#86efac" stroke="#15803d"/><circle r="2.5" fill="#15803d"/>';
-  $('fx').appendChild(g); const t0=performance.now(), spin=(Math.random()-.5)*540;
-  (function step(now){const t=Math.min(1,(now-t0)/d), e=t*(2-t);
-    const x=x0+(x1-x0)*e, y=y0+(y1-y0)*t-(kind==='coin'?90:30)*Math.sin(Math.PI*t);
-    g.setAttribute('transform',`translate(${x},${y}) rotate(${kind==='coin'?0:spin*t}) scale(${kind==='coin'?1-.3*t:1})`);
-    g.setAttribute('opacity',kind==='coin'?1:1-t);
-    if(t<1)requestAnimationFrame(step); else {g.remove(); done&&done();}})(t0);}
+/* ---------- risk profile ---------- */
+let riskCancel=()=>{};
+function enterRisk(){riskCancel(); $('riskMark').setAttribute('transform','translate(90,0)');
+  riskCancel=tween(1100,t=>$('riskMark').setAttribute('transform',`translate(${lerp(90,320,t)},0)`));}
 
-function card(i){const s=ST[i];
-  ['kicker','title','text'].forEach(id=>{const e=$(id);e.classList.remove('fade');void e.offsetWidth;e.classList.add('fade')});
-  $('kicker').textContent=i===0?'The story · start':`Step ${i} of ${N-1}`;
-  $('title').textContent=s.name; $('text').textContent=s.text; $('fill').style.width=(s.mood*100)+'%';
-  const o=$('open'); if(s.url){o.style.visibility='visible';o.textContent=`Open ${s.name} →`;o.href=base+s.url}else{o.style.visibility='hidden'}
-  $('back').disabled=i===0; $('next').textContent=i===0?'Start →':i===N-1?'Start over ↺':'Next →';
-  dots.forEach((d,k)=>d.classList.toggle('on',k===i));
-  nodes.forEach((n,k)=>{const c=n.querySelector('circle');c.setAttribute('fill',k<=i?'#fcd34d':'rgba(255,255,255,.85)');c.setAttribute('r',k===i?14:11)});
-  $('hand').innerHTML=ITEMS[s.item];}
-// Streamlit's iframe can't navigate the page itself, but it is same-origin, so click the
-// matching sidebar link: an in-app page switch that keeps the user's session.
+/* ---------- options compared ---------- */
+const OPT=[['Savings account',.04,.10],['FD',.38,.27],['RD',.52,.19],['Gold',.17,.55],['PPF',.88,.40],['NPS',.97,.68],['Index fund',.22,.90]];
+OPT.forEach(([name,x,y],i)=>{const px=110+x*470*.92, py=330-y*215, left=x>.8, g=svg('g',{class:'pop',style:`animation-delay:${i*160}ms`},$('learnDots'));
+  svg('circle',{cx:px,cy:py,r:7,fill:i===6?'#5eead4':'#fff','fill-opacity':.9,stroke:'#0f5c43','stroke-width':2},g);
+  const t=svg('text',{x:left?px-13:px+13,y:py+4.5,'font-size':13,fill:'#fff','text-anchor':left?'end':'start','font-weight':600},g); t.textContent=name;});
+function enterLearn(){const g=$('learnDots');g.classList.remove('go');void g.getBoundingClientRect();g.classList.add('go');}
+
+/* ---------- simulator range ---------- */
+const sim=D.sim, M=sim.p50.length, X0=90, X1=468, Y0=330, Y1=96, vmax=Math.max(...sim.p90)*1.06;
+const sx=m=>X0+(m+1)/M*(X1-X0), sy=v=>Y0-v/vmax*(Y0-Y1), pt=(v,m)=>`${sx(m).toFixed(1)},${sy(v).toFixed(1)}`, pts=a=>a.map((v,m)=>pt(v,m)).join(' ');
+let band='M'+sim.p90.map((v,m)=>pt(v,m)).join(' L'); for(let m=M-1;m>=0;m--)band+=' L'+pt(sim.p10[m],m); $('simBand').setAttribute('d',band+'Z');
+$('simMid').setAttribute('points',pts(sim.p50)); $('simInv').setAttribute('points',pts(sim.invested)); $('simFd').setAttribute('points',pts(sim.fd));
+(function axes(){const g=$('simAxes'), lk=v=>v>=1e5?`₹${+(v/1e5).toFixed(1)}L`:`₹${Math.round(v/1e3)}k`;
+  const stepv=[1e5,2e5,5e5,1e6,2e6].find(v=>vmax/v<=5)||2e6;
+  for(let v=0;v<=vmax;v+=stepv){svg('line',{x1:X0,x2:X1,y1:sy(v),y2:sy(v),stroke:'#fff','stroke-opacity':v?.1:.3},g); if(v){const t=svg('text',{x:X0-8,y:sy(v)+4,'font-size':11,fill:'#fff','fill-opacity':.65,'text-anchor':'end'},g);t.textContent=lk(v);}}
+  [[X0,'Today','start'],[(X0+X1)/2,`${sim.years/2} years`,'middle'],[X1,`${sim.years} years`,'end']].forEach(([x,l,a])=>{const t=svg('text',{x,y:Y0+18,'font-size':11,fill:'#fff','fill-opacity':.65,'text-anchor':a},g);t.textContent=l});})();
+(function ends(){const g=$('simEnds'), e=[[sim.p90.at(-1),'Good case','#5eead4'],[sim.p50.at(-1),'Middle','#5eead4'],[sim.fd.at(-1),'FD','#e9c46a'],[sim.p10.at(-1),'Bad case','#fff'],[sim.invested.at(-1),'Put in','#fff']];
+  const ys=e.map(([v])=>sy(v)), o=ys.map((y,i)=>i).sort((a,b)=>ys[a]-ys[b]); let prev=-99; const fy={};
+  o.forEach(i=>{const y=Math.max(ys[i],prev+13);fy[i]=y;prev=y});
+  e.forEach(([v,l,c],i)=>{const t=svg('text',{x:X1+6,y:fy[i]+4,'font-size':11,fill:c,'font-weight':600},g);t.textContent=`${l} ${inr(v)}`});})();
+$('simLegend').textContent=`Shaded: 1 in 10 worse to 1 in 10 better · Dashed: FD at 7% · Dotted: money put in · ${inr(sim.monthly)} a month, in today's money`;
+let simCancel=()=>{};
+function enterSim(){simCancel(); $('simEnds').style.transition='none'; $('simEnds').setAttribute('opacity',0); const r=$('simClipRect'); r.setAttribute('x',X0-6); r.setAttribute('width',0);
+  simCancel=tween(1700,t=>r.setAttribute('width',(X1-X0+12)*t),()=>{$('simEnds').style.transition='opacity .6s';$('simEnds').setAttribute('opacity',1)});}
+
+/* ---------- scam message ---------- */
+function setScam(on){const el=$('scam');el.classList.remove('show');if(on){void el.offsetWidth;el.classList.add('show')}}
+
+/* ---------- headline, card, navigation ---------- */
+let headCancel=()=>{};
+function setHead(h){headCancel(); $('headCap').textContent=h.cap;
+  if(h.text){$('headNum').textContent=h.text;return}
+  const f=h.inr?inr:v=>Math.round(v).toLocaleString('en-IN'); headCancel=tween(900,t=>$('headNum').textContent=f(h.value*t));}
+const dots=[]; ST.forEach((st,i)=>{const b=document.createElement('button');b.className='dot';b.setAttribute('aria-label',`${i}. ${st.name}`);b.onclick=()=>go(i);$('dots').appendChild(b);dots.push(b)});
 let base='/'; try{base=window.parent.location.origin+'/'}catch(e){}
-$('open').addEventListener('click',e=>{
-  try{const url=ST[at].url, link=window.parent.document.querySelector(`a[href$="/${url}"]`);
-    if(link){e.preventDefault(); link.click(); return;}}catch(err){}
-  e.preventDefault(); window.open($('open').href,'_blank');   // fallback: new tab
-});
-
-// moving between stops: she walks the road; mood, sky and piggy change with her
-let at=0, busy=false, anim=null, phase=0;
-function go(i){ if(i===at&&!busy) return; cancelAnimationFrame(anim);
-  const from=frac(at), to=frac(i), m0=ST[at].mood, m1=ST[i].mood, p0=save(at), p1=save(i), forward=i>at;
-  card(i); at=i;
-  if(reduce){place(to,0,false);look(m1);pigFill(p1);return;}
-  const d=Math.min(2600,700+Math.abs(to-from)*5200), t0=performance.now(); busy=true;
-  (function step(now){const t=Math.min(1,(now-t0)/d), e=t<.5?2*t*t:1-Math.pow(-2*t+2,2)/2;
-    phase+=0.21; place(from+(to-from)*e,phase,t<1); look(m0+(m1-m0)*e);
-    if(!forward) pigFill(p0+(p1-p0)*e);
-    if(t<1) anim=requestAnimationFrame(step);
-    else{busy=false; place(to,0,false);
-      if(forward){ if(m1<.35) burstNotes(); else { dropCoins(i===N-1?6:3); setTimeout(()=>pigFill(p1),900);} } }})(t0);}
-
+let at=0;
+$('open').addEventListener('click',e=>{e.preventDefault(); const url=ST[at].url; if(!url)return;
+  try{const link=window.parent.document.querySelector(`a[href$="/${url}"]`); if(link){link.click();return}}catch(err){}
+  window.open(base+url,'_blank');});
+function card(i){const st=ST[i];
+  ['kicker','title','text'].forEach(id=>{const e=$(id);e.classList.remove('fade');void e.offsetWidth;e.classList.add('fade')});
+  $('kicker').textContent=i===0?'One month of money':`Step ${i} of ${N-1}`;
+  $('title').textContent=st.name; $('text').textContent=st.text; $('fill').style.width=(st.mood*100)+'%';
+  const o=$('open'); if(st.url){o.style.display='inline-block';o.textContent=`Open ${st.name} →`;o.href=base+st.url}else{o.style.display='none'}
+  $('back').disabled=i===0; $('next').textContent=i===0?'Start →':i===N-1?'Start over ↺':'Next →';
+  dots.forEach((d,k)=>d.classList.toggle('on',k===i));}
+const SCENE=['flow','flow','flow','flow','risk','learn','sim','scam'];
+function go(i){ at=i; card(i); setHead(ST[i].head);
+  const sc=SCENE[i]; ['flow','risk','learn','sim'].forEach(k=>$('g_'+k).setAttribute('opacity',k===sc?1:0));
+  setScam(sc==='scam');
+  if(sc==='flow'){flowCancel(); const a=S,b=target(i); flowCancel=tween(1100,t=>{S=mixS(a,b,t);render(S)});}
+  if(sc==='risk')enterRisk(); if(sc==='learn')enterLearn(); if(sc==='sim')enterSim();}
 $('next').onclick=()=>go(at===N-1?0:at+1);
 $('back').onclick=()=>at>0&&go(at-1);
 addEventListener('keydown',e=>{if(e.key==='ArrowRight')$('next').click(); if(e.key==='ArrowLeft')$('back').click();});
-let sx=null; addEventListener('touchstart',e=>sx=e.touches[0].clientX,{passive:true});
-addEventListener('touchend',e=>{if(sx===null)return;const dx=e.changedTouches[0].clientX-sx;if(Math.abs(dx)>40)(dx<0?$('next'):$('back')).click();sx=null});
-
-card(0); look(0); pigFill(0); place(frac(0),0,false);
-if(!reduce) setTimeout(burstNotes,600);
+let sx0=null; addEventListener('touchstart',e=>sx0=e.touches[0].clientX,{passive:true});
+addEventListener('touchend',e=>{if(sx0===null)return;const dx=e.changedTouches[0].clientX-sx0;if(Math.abs(dx)>40)(dx<0?$('next'):$('back')).click();sx0=null});
+go(0);
 </script></body></html>"""

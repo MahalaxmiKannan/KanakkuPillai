@@ -78,3 +78,14 @@ def test_backtest_reports_coverage():
     b = backtest(r, 3, paths=2000)
     assert b["windows"] == len(r) - 36 + 1
     assert 0 <= b["coverage"] <= 1
+
+
+def test_home_story_data_is_consistent():
+    from core.roadmap import chapters, story_data
+    d = story_data()
+    assert d["income"] >= d["spend"] >= 0
+    assert abs(sum(i["value"] for i in d["items"]) - d["income"]) <= len(d["items"])   # rounding only
+    assert d["items"][-1]["group"] == "left"
+    s = d["sim"]
+    assert len(s["p50"]) == s["years"] * 12 and s["p10"][-1] < s["p50"][-1] < s["p90"][-1]
+    assert len(chapters(d)) == 8

@@ -2,7 +2,7 @@
 import streamlit as st
 import streamlit.components.v1 as components
 
-from core.roadmap import build_roadmap
+from core.roadmap import build_roadmap, story_data
 from core.ui import setup_page
 
 setup_page("Home", "💰")
@@ -19,6 +19,8 @@ st.markdown(
   @media (max-width: 640px) {
     .kp-hero.compact { padding: .8rem 1.1rem; }
     .kp-hero.compact .kp-coin { display: none; }
+    /* the story card is taller on phones: use the screen height that is left */
+    [data-testid="stMain"] iframe { height: calc(100dvh - 300px) !important; min-height: 520px; }
     /* keep the two buttons side by side and drop the note, to save height */
     [data-testid="stHorizontalBlock"] { flex-wrap: nowrap !important; gap: .5rem; }
     [data-testid="stHorizontalBlock"] > div { min-width: 0 !important; }
@@ -44,4 +46,9 @@ if b2.button("Try the demo", width="stretch"):
     st.switch_page("pages/1_Upload.py")
 note.caption("🔒 Processed in memory, never saved. The demo uses a fictional student's account.")
 
-components.html(build_roadmap(dark=st.context.theme.type == "dark"), height=450, scrolling=False)
+@st.cache_data
+def _story() -> dict:
+    return story_data()
+
+
+components.html(build_roadmap(_story(), dark=st.context.theme.type == "dark"), height=450, scrolling=False)
