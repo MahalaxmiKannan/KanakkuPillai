@@ -1,22 +1,28 @@
-"""Spending dashboard: where the money went, with categories the user can correct."""
+"""Spending dashboard: click any chart to filter everything else, drill into a merchant, fix categories."""
+from functools import partial
 from pathlib import Path
 
+import numpy as np
 import pandas as pd
 import plotly.graph_objects as go
 import streamlit as st
 
-from core.categorizer import CATEGORIES, SPENDING_CATEGORIES, categorize, load_model
+from core.categorizer import CATEGORIES, SPENDING_CATEGORIES, load_model
 from core.parsers import find_balance_gaps, parse_statement
 from core.spending import (
     AVOIDABLE_CATEGORIES,
     apply_overrides,
     by_category,
+    category_by_month,
+    daily_spend,
+    filter_rows,
     format_inr,
-    monthly_trend,
+    month_labels,
+    payee_payments,
     recurring_payments,
     same_payee_ids,
-    summary,
     top_merchants,
+    weekday_average,
 )
 from core.ui import clear_user_data, load_categorized, page_header, setup_page
 
@@ -30,113 +36,51 @@ SERIES = {
     "dark": ["#3987e5", "#d95926", "#199e70", "#c98500", "#d55181", "#0ca30c", "#9085e9", "#e66767"],
 }
 INK = {
-    "light": {"text": "#0b0b0b", "muted": "#52514e", "grid": "#e6e5e0", "surface": "#ffffff"},
-    "dark": {"text": "#f0efec", "muted": "#c3c2b7", "grid": "#33332f", "surface": "#0e1117"},
+    "light": {"text": "#0b0b0b", "muted": "#52514e", "grid": "#e6e5e0", "surface": "#ffffff", "empty": "#eef1ef", "heat": ["#d9efe5", "#1B7F5C"]},
+    "dark": {"text": "#f0efec", "muted": "#c3c2b7", "grid": "#33332f", "surface": "#0e1117", "empty": "#1b2321", "heat": ["#1f5a46", "#5eead4"]},
 }
-SOURCE_LABELS = {
-    "rule": "App rules",
-    "model": "ML model",
-    "person": "Looks like a person",
-    "fallback": "Best guess",
-    "you": "Your correction",
-}
+SOURCE_LABELS = {"rule": "App rules", "model": "ML model", "person": "Looks like a person", "fallback": "Best guess", "you": "Your correction"}
+EXTRA = {"light": ["#8a8984", "#b9b8b2"], "dark": ["#9d9c95", "#6c6b66"]}
 
 mode = "dark" if st.context.theme.type == "dark" else "light"
-# The palette is validated for 8 categories; any further ones get neutral greys.
-EXTRA = {"light": ["#8a8984", "#b9b8b2"], "dark": ["#9d9c95", "#6c6b66"]}
 colors = dict(zip(SPENDING_CATEGORIES, SERIES[mode] + EXTRA[mode]))
 ink = INK[mode]
 PLOT_CONFIG = {"displayModeBar": False}
+WEEKDAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
 
 
-def base_layout(height: int) -> dict:
-    return {
-        "height": height,
-        "margin": {"l": 8, "r": 8, "t": 8, "b": 8},
-        "paper_bgcolor": "rgba(0,0,0,0)",
-        "plot_bgcolor": "rgba(0,0,0,0)",
-        "font": {"color": ink["muted"], "size": 13},
-        "hoverlabel": {"bgcolor": ink["surface"], "font": {"color": ink["text"]}, "bordercolor": ink["grid"]},
-    }
+# ---------- filter state ----------
+def reset_filters() -> None:
+    st.session_state.update(f_cats=[], f_months=[], f_payee=None, f_search="")
+    for k in ("ver_cat", "ver_month", "ver_merch"):
+        st.session_state[k] = st.session_state.get(k, 0) + 1
 
 
-def donut(totals: pd.Series) -> go.Figure:
-    share = totals / totals.sum()
-    fig = go.Figure(go.Pie(
-        labels=totals.index,
-        values=totals.values,
-        hole=0.64,
-        sort=False,
-        direction="clockwise",
-        marker={"colors": [colors[c] for c in totals.index], "line": {"color": ink["surface"], "width": 2}},
-        text=[f"{s:.0%}" if s >= 0.06 else "" for s in share],
-        textinfo="text",
-        textposition="outside",
-        textfont={"color": ink["text"]},
-        customdata=[format_inr(v) for v in totals.values],
-        hovertemplate="<b>%{label}</b><br>%{customdata} · %{percent}<extra></extra>",
-    ))
-    fig.update_layout(
-        **base_layout(380),
-        legend={"orientation": "h", "y": -0.08, "x": 0.5, "xanchor": "center"},
-        annotations=[{
-            "text": f"<b>{format_inr(totals.sum())}</b><br><span style='font-size:12px'>total spent</span>",
-            "showarrow": False,
-            "font": {"size": 20, "color": ink["text"]},
-        }],
-    )
-    return fig
+def toggle(list_key: str, value: str) -> None:
+    cur = list(st.session_state.get(list_key) or [])
+    st.session_state[list_key] = [c for c in cur if c != value] if value in cur else cur + [value]
 
 
-def trend_line(trend: pd.Series) -> go.Figure:
-    labels = [p.strftime("%b %y") for p in trend.index]
-    peak = trend.values.argmax()
-    fig = go.Figure(go.Scatter(
-        x=labels,
-        y=trend.values,
-        mode="lines+markers+text",
-        line={"color": SERIES[mode][0], "width": 2},
-        marker={"size": 9, "color": SERIES[mode][0], "line": {"color": ink["surface"], "width": 2}},
-        text=[format_inr(v) if i == peak else "" for i, v in enumerate(trend.values)],
-        textposition="top center",
-        textfont={"color": ink["text"]},
-        customdata=[format_inr(v) for v in trend.values],
-        hovertemplate="<b>%{x}</b><br>%{customdata}<extra></extra>",
-        cliponaxis=False,
-    ))
-    fig.update_layout(**base_layout(380), showlegend=False)
-    fig.update_xaxes(type="category", showgrid=False, linecolor=ink["grid"], automargin=True)
-    fig.update_yaxes(
-        rangemode="tozero",
-        range=[0, float(trend.max()) * 1.18 or 1],
-        gridcolor=ink["grid"],
-        zeroline=False,
-        tickprefix="₹",
-        tickformat="~s",
-        automargin=True,
-    )
-    return fig
+def click_category(chart_key: str) -> None:
+    pts = st.session_state[chart_key]["selection"]["points"]
+    if pts:
+        toggle("f_cats", pts[0]["y"])
+    st.session_state["ver_cat"] += 1               # forget the chart's own selection: the pills show it instead
 
 
-def merchant_bars(top: pd.DataFrame) -> go.Figure:
-    fig = go.Figure(go.Bar(
-        x=top["amount"],
-        y=top["payee"].str.title(),
-        orientation="h",
-        marker={"color": SERIES[mode][0], "cornerradius": 4},
-        text=[format_inr(v) for v in top["amount"]],
-        textposition="outside",
-        textfont={"color": ink["text"]},
-        cliponaxis=False,
-        customdata=list(zip(top["category"], top["payments"])),
-        hovertemplate="<b>%{y}</b><br>%{text} over %{customdata[1]} payments<br>%{customdata[0]}<extra></extra>",
-    ))
-    layout = base_layout(max(240, 38 * len(top)))
-    layout["margin"] = {"l": 8, "r": 76, "t": 8, "b": 8}
-    fig.update_layout(**layout, bargap=0.42, showlegend=False)
-    fig.update_xaxes(visible=False, rangemode="tozero")
-    fig.update_yaxes(autorange="reversed", showgrid=False, ticks="", linecolor=ink["grid"], automargin=True)
-    return fig
+def click_month(chart_key: str) -> None:
+    pts = st.session_state[chart_key]["selection"]["points"]
+    if pts:
+        toggle("f_months", pts[0]["x"])
+    st.session_state["ver_month"] += 1
+
+
+def click_merchant(chart_key: str, payees: list[str]) -> None:
+    pts = st.session_state[chart_key]["selection"]["points"]
+    if pts:
+        chosen = payees[pts[0]["point_index"]]
+        st.session_state["f_payee"] = None if st.session_state.get("f_payee") == chosen else chosen
+    st.session_state["ver_merch"] += 1
 
 
 def save_edits(editor_key: str, row_ids: list[int]) -> None:
@@ -157,7 +101,142 @@ def reset_edits() -> None:
     st.session_state["editor_version"] += 1
 
 
-page_header("My Spending", "📊", "Where your money went, by category, month and merchant.", step=2)
+# ---------- charts ----------
+def base_layout(height: int) -> dict:
+    return {
+        "height": height,
+        "margin": {"l": 8, "r": 8, "t": 8, "b": 8},
+        "paper_bgcolor": "rgba(0,0,0,0)",
+        "plot_bgcolor": "rgba(0,0,0,0)",
+        "font": {"color": ink["muted"], "size": 13},
+        "hoverlabel": {"bgcolor": ink["surface"], "font": {"color": ink["text"]}, "bordercolor": ink["grid"]},
+    }
+
+
+def category_bars(totals: pd.Series, selected: list[str]) -> go.Figure:
+    """One bar per category, biggest first. Hatched = avoidable. Click a bar to filter."""
+    totals = totals.sort_values(ascending=False)
+    share = totals / totals.sum()
+    cats = list(totals.index)
+    dim = [0.28 if selected and c not in selected else 1.0 for c in cats]
+    fig = go.Figure(go.Bar(
+        x=totals.values, y=cats, orientation="h",
+        marker={
+            "color": [colors[c] for c in cats], "opacity": dim, "cornerradius": 5,
+            "pattern": {"shape": ["/" if c in AVOIDABLE_CATEGORIES else "" for c in cats], "size": 7, "solidity": 0.32,
+                        "fgcolor": "rgba(255,255,255,.55)"},
+        },
+        text=[f"{format_inr(v)} · {s:.0%}" for v, s in zip(totals.values, share)],
+        textposition="outside", textfont={"color": ink["text"]}, cliponaxis=False,
+        customdata=[format_inr(v) for v in totals.values],
+        hovertemplate="<b>%{y}</b><br>%{customdata}<br><i>Click to filter</i><extra></extra>",
+    ))
+    layout = base_layout(max(260, 44 * len(cats)))
+    layout["margin"] = {"l": 8, "r": 120, "t": 8, "b": 8}
+    fig.update_layout(**layout, bargap=0.38, showlegend=False, clickmode="event+select")
+    fig.update_xaxes(visible=False, rangemode="tozero")
+    fig.update_yaxes(autorange="reversed", showgrid=False, ticks="", linecolor=ink["grid"], automargin=True)
+    fig.update_traces(selected={"marker": {"opacity": 1}}, unselected={"marker": {"opacity": 1}})
+    return fig
+
+
+def month_columns(matrix: pd.DataFrame, selected: list[str], share_view: bool) -> go.Figure:
+    """Stacked columns per month, split by category. Click a column to pick a month."""
+    months = list(matrix.index)
+    dim = [0.3 if selected and m not in selected else 1.0 for m in months]
+    fig = go.Figure()
+    for cat in matrix.columns:
+        fig.add_bar(
+            name=cat, x=months, y=matrix[cat].values, marker={"color": colors[cat], "opacity": dim},
+            customdata=[format_inr(v) for v in matrix[cat].values],
+            hovertemplate=f"{cat}: %{{customdata}}<extra></extra>",
+        )
+    layout = base_layout(340)
+    layout["margin"] = {"l": 8, "r": 8, "t": 8, "b": 8}
+    fig.update_layout(
+        **layout, barmode="stack", barnorm="percent" if share_view else None, bargap=0.3,
+        hovermode="x unified", clickmode="event+select",
+        legend={"orientation": "h", "y": -0.18, "x": 0.5, "xanchor": "center", "font": {"size": 11}},
+    )
+    fig.update_xaxes(type="category", showgrid=False, linecolor=ink["grid"], automargin=True)
+    fig.update_yaxes(gridcolor=ink["grid"], zeroline=False, automargin=True,
+                     **({"ticksuffix": "%"} if share_view else {"tickprefix": "₹", "tickformat": "~s"}))
+    if not share_view and len(months) > 1:
+        avg = float(matrix.sum(axis=1).mean())
+        fig.add_hline(y=avg, line={"color": ink["muted"], "dash": "dot", "width": 1.5},
+                      annotation_text=f"average {format_inr(avg)}", annotation_position="top left",
+                      annotation_font={"color": ink["muted"], "size": 11})
+    fig.update_traces(selected={"marker": {"opacity": 1}}, unselected={"marker": {"opacity": 1}})
+    return fig
+
+
+def calendar_heatmap(daily: pd.DataFrame, start: pd.Timestamp, end: pd.Timestamp) -> go.Figure:
+    """GitHub-style calendar: a square per day, darker = more spent. Hover for the day's payees."""
+    first = start - pd.Timedelta(days=start.dayofweek)             # Monday of the first week
+    days = pd.date_range(first, end, freq="D")
+    weeks = (len(days) + 6) // 7
+    z = np.full((7, weeks), np.nan)
+    hover = [[""] * weeks for _ in range(7)]
+    lookup = daily.set_index("date")
+    for i, day in enumerate(days):
+        r, c = day.dayofweek, i // 7
+        if day < start:
+            continue
+        amount = float(lookup["amount"].get(day, 0.0))
+        z[r, c] = amount
+        names = lookup["payees"].get(day, "") if amount else "No spending"
+        hover[r][c] = f"<b>{day:%a %d %b}</b><br>{format_inr(amount)}<br>{names}"
+    top = float(np.nanmax(z)) if np.isfinite(z).any() and np.nanmax(z) > 0 else 1.0
+    fig = go.Figure(go.Heatmap(
+        z=z, text=hover, hovertemplate="%{text}<extra></extra>", xgap=3, ygap=3,
+        colorscale=[[0, ink["heat"][0]], [1, ink["heat"][1]]], zmin=0, zmax=top, showscale=False,
+    ))
+    # A month label above the first week that really starts in that month (clamped to the statement's first day).
+    week_start = [max(d, start) for d in days[::7]]
+    ticks = [i for i, d in enumerate(week_start) if i == 0 or d.month != week_start[i - 1].month]
+    layout = base_layout(236)
+    layout["margin"] = {"l": 44, "r": 8, "t": 30, "b": 8}
+    fig.update_layout(**layout)
+    fig.update_xaxes(tickvals=ticks, ticktext=[week_start[i].strftime("%b") for i in ticks], showgrid=False, zeroline=False, side="top", ticks="")
+    fig.update_yaxes(tickvals=[0, 2, 4, 6], ticktext=["Mon", "Wed", "Fri", "Sun"], autorange="reversed", showgrid=False, zeroline=False, ticks="")
+    return fig
+
+
+def merchant_bars(top: pd.DataFrame, selected: str | None) -> go.Figure:
+    names = top["payee"].str.title()
+    dim = [0.3 if selected and p != selected else 1.0 for p in top["payee"]]
+    fig = go.Figure(go.Bar(
+        x=top["amount"], y=names, orientation="h",
+        marker={"color": [colors.get(c, SERIES[mode][0]) for c in top["category"]], "opacity": dim, "cornerradius": 4},
+        text=[format_inr(v) for v in top["amount"]], textposition="outside", textfont={"color": ink["text"]}, cliponaxis=False,
+        customdata=list(zip(top["category"], top["payments"])),
+        hovertemplate="<b>%{y}</b><br>%{text} over %{customdata[1]} payments<br>%{customdata[0]}<br><i>Click for details</i><extra></extra>",
+    ))
+    layout = base_layout(max(260, 38 * len(top)))
+    layout["margin"] = {"l": 8, "r": 76, "t": 8, "b": 8}
+    fig.update_layout(**layout, bargap=0.42, showlegend=False, clickmode="event+select")
+    fig.update_xaxes(visible=False, rangemode="tozero")
+    fig.update_yaxes(autorange="reversed", showgrid=False, ticks="", linecolor=ink["grid"], automargin=True)
+    fig.update_traces(selected={"marker": {"opacity": 1}}, unselected={"marker": {"opacity": 1}})
+    return fig
+
+
+def payee_timeline(pay: pd.DataFrame, color: str) -> go.Figure:
+    fig = go.Figure(go.Bar(
+        x=pay["date"], y=pay["amount"], marker={"color": color, "cornerradius": 3},
+        customdata=[format_inr(v) for v in pay["amount"]],
+        hovertemplate="<b>%{x|%d %b %Y}</b><br>%{customdata}<extra></extra>",
+    ))
+    layout = base_layout(150)
+    layout["margin"] = {"l": 8, "r": 8, "t": 4, "b": 8}
+    fig.update_layout(**layout, bargap=0.5)
+    fig.update_xaxes(showgrid=False, linecolor=ink["grid"], automargin=True)
+    fig.update_yaxes(gridcolor=ink["grid"], zeroline=False, tickprefix="₹", tickformat="~s", automargin=True)
+    return fig
+
+
+# ---------- page ----------
+page_header("My Spending", "📊", "Click any chart to filter everything else. Spot a pattern, then drill into it.", step=2)
 
 raw = st.session_state.get("transactions")
 if raw is None:
@@ -173,8 +252,14 @@ if raw is None:
             st.switch_page("pages/1_Upload.py")
     st.stop()
 
-# Categorize once per statement; corrections survive moving between pages.
-df = load_categorized()
+df = load_categorized()          # categorised once per statement; corrections survive moving between pages
+
+# A new statement means new months and categories: start with clean filters.
+if st.session_state.get("f_for") != st.session_state["categorized_for"]:
+    st.session_state["f_for"] = st.session_state["categorized_for"]
+    for k in ("ver_cat", "ver_month", "ver_merch"):
+        st.session_state[k] = 0
+    st.session_state.update(f_cats=[], f_months=[], f_payee=None, f_search="")
 
 st.caption(f"Showing: {st.session_state.get('source_name', 'statement')}")
 if load_model() is None:
@@ -183,115 +268,142 @@ gaps = find_balance_gaps(raw)
 if not gaps.empty:
     st.warning(f"Your statement has {len(gaps)} balance gap(s), so these totals may be incomplete. See the Upload page.")
 
-numbers = summary(df)
-totals = by_category(df)
+all_months = month_labels(df)
+all_totals = by_category(df)
+if all_totals.empty:
+    st.info("No spending found in this statement yet. Check the categories in the table at the bottom.")
 
-if totals.empty:
-    st.info("No spending found in this statement yet. Check the categories in the table below.")
+# ----- filters (charts below write into these too) -----
+with st.container(border=True, key="card_filters"):
+    st.pills("Categories", options=list(all_totals.index), selection_mode="multi", key="f_cats",
+             help="Pick one or more, or click a bar in the chart below.")
+    st.segmented_control("Months", options=all_months, selection_mode="multi", key="f_months",
+                         help="Pick one or more, or click a column in the monthly chart.")
+    chips = list(st.session_state["f_cats"]) + list(st.session_state["f_months"])
+    if st.session_state.get("f_payee"):
+        chips.append(st.session_state["f_payee"].title())
+    c_a, c_b = st.columns([5, 1], vertical_alignment="center")
+    c_a.caption("Filtering by: " + " · ".join(chips) if chips else "Showing everything. Click a bar or column to filter.")
+    c_b.button("Clear all", on_click=reset_filters, disabled=not chips, width="stretch")
+
+cats, months = st.session_state["f_cats"], st.session_state["f_months"]
+payee = st.session_state.get("f_payee")
+df_m = filter_rows(df, months=months)                          # for the category chart (not by category)
+df_c = filter_rows(df, categories=cats)                        # for the monthly chart (not by month)
+df_f = filter_rows(df, categories=cats, months=months)         # everything else
+totals_m, totals_f = by_category(df_m), by_category(df_f)
+
+# ----- headline numbers for the current selection -----
+n_months = max(len(months) or len(all_months), 1)
+total = float(totals_f.sum())
+avoid = float(totals_f.reindex(AVOIDABLE_CATEGORIES, fill_value=0).sum())
+sent = float(df_m.loc[df_m["category"] == "Transfers (P2P)", "debit"].sum())
+c1, c2, c3, c4 = st.columns(4)
+c1.metric("Total spent", format_inr(total), help=f"Across {n_months} month(s), after refunds.")
+c2.metric("Average per month", format_inr(total / n_months))
+c3.metric("Avoidable spend", format_inr(avoid), help=f"{', '.join(AVOIDABLE_CATEGORIES)}: spending you could choose to cut.")
+c4.metric("Sent to people", format_inr(sent),
+          help="P2P transfers and ATM cash. Not counted as spending, because we can't see what it paid for.")
+if total:
+    top_cat = totals_f.idxmax()
+    st.caption(f"{top_cat} is the biggest slice at {totals_f.max() / total:.0%}. "
+               f"Avoidable categories are {avoid / total:.0%} of this spending, about {format_inr(avoid / n_months)} a month.")
+
+if df_f.empty or total == 0:
+    st.info("Nothing matches these filters.")
 else:
-    c1, c2, c3, c4 = st.columns(4)
-    c1.metric("Total spent", format_inr(numbers["total"]), help=f"Across {numbers['months']} month(s), after refunds.")
-    c2.metric("Average per month", format_inr(numbers["per_month"]))
-    c3.metric(
-        "Avoidable spend",
-        format_inr(numbers["avoidable"]),
-        help=f"{', '.join(AVOIDABLE_CATEGORIES)}: spending you could choose to cut.",
-    )
-    c4.metric(
-        "Sent to people & cash",
-        format_inr(numbers["transfers_out"]),
-        help="P2P transfers and ATM cash. Not counted as spending, because we can't see what it paid for.",
-    )
-    st.caption(
-        f"Avoidable spend is {numbers['avoidable_share']:.0%} of your spending, "
-        f"about {format_inr(numbers['avoidable_per_month'])} a month."
-    )
-
     left, right = st.columns(2)
     with left:
-        st.subheader("Spending by category")
-        st.plotly_chart(donut(totals), width="stretch", theme=None, config=PLOT_CONFIG)
+        st.subheader("Where it went")
+        st.caption("Hatched bars are avoidable. Click a bar to filter by that category.")
+        key = f"cat_chart_{st.session_state.get('ver_cat', 0)}"
+        st.plotly_chart(category_bars(totals_m, cats), width="stretch", theme=None, config=PLOT_CONFIG,
+                        on_select=partial(click_category, key), selection_mode="points", key=key)
     with right:
-        st.subheader("Monthly spending")
-        trend = monthly_trend(df)
-        st.plotly_chart(trend_line(trend), width="stretch", theme=None, config=PLOT_CONFIG)
+        st.subheader("Month by month")
+        view = st.segmented_control("Show", ["Amount", "Share of month"], default="Amount", key="month_view",
+                                    label_visibility="collapsed")
+        matrix = category_by_month(df_c, all_months)
+        key = f"month_chart_{st.session_state.get('ver_month', 0)}"
+        st.plotly_chart(month_columns(matrix, months, view == "Share of month"), width="stretch", theme=None,
+                        config=PLOT_CONFIG, on_select=partial(click_month, key), selection_mode="points", key=key)
+
+    st.subheader("Every day at a glance")
+    daily = daily_spend(df_f)
+    start, end = df["date"].min().normalize(), df["date"].max().normalize()
+    st.plotly_chart(calendar_heatmap(daily, start, end), width="stretch", theme=None, config=PLOT_CONFIG)
+    wk = weekday_average(daily, pd.date_range(start, end, freq="D"))
+    if wk.max() > 0:
+        st.caption(f"Busiest day of the week: {WEEKDAYS[int(wk.idxmax())]}, averaging {format_inr(wk.max())} "
+                   f"(quietest: {WEEKDAYS[int(wk.idxmin())]}, {format_inr(wk.min())}). Darker squares are bigger days.")
 
     left, right = st.columns(2)
+    top = top_merchants(df_f)
     with left:
-        st.subheader("Top 10 merchants")
-        top = top_merchants(df)
-        st.plotly_chart(merchant_bars(top), width="stretch", theme=None, config=PLOT_CONFIG)
+        st.subheader("Top merchants")
+        st.caption("Click a merchant to see every payment to it.")
+        key = f"merch_chart_{st.session_state.get('ver_merch', 0)}"
+        st.plotly_chart(merchant_bars(top, payee), width="stretch", theme=None, config=PLOT_CONFIG,
+                        on_select=partial(click_merchant, key, top["payee"].tolist()), selection_mode="points", key=key)
     with right:
-        st.subheader("Recurring payments")
-        recurring = recurring_payments(df)
-        if recurring.empty:
-            st.caption("No steady monthly payments found. These need at least 3 months of history.")
+        if payee:
+            st.subheader(payee.title())
+            pay = payee_payments(df_f, payee)
+            if pay.empty:
+                st.caption("No payments to this merchant in the current filters.")
+            else:
+                st.markdown(f"**{format_inr(pay['amount'].sum())}** in total · **{len(pay)}** payments · "
+                            f"**{format_inr(pay['amount'].mean())}** on average")
+                st.plotly_chart(payee_timeline(pay, colors.get(pay["category"].iloc[0], SERIES[mode][0])),
+                                width="stretch", theme=None, config=PLOT_CONFIG)
+                st.dataframe(pd.DataFrame({"Date": pay["date"].dt.strftime("%d %b %Y"), "Amount": pay["amount"].map(format_inr),
+                                           "Category": pay["category"]}), width="stretch", hide_index=True, height=150)
+            st.button("✕ Back to all merchants", on_click=lambda: st.session_state.update(
+                f_payee=None, ver_merch=st.session_state.get("ver_merch", 0) + 1))
         else:
-            st.dataframe(
-                pd.DataFrame({
-                    "Payee": recurring["payee"].str.title(),
-                    "Category": recurring["category"],
-                    "Per month": recurring["monthly"].map(format_inr),
-                    "Per year": recurring["yearly"].map(format_inr),
-                    "Last paid": recurring["last_paid"].dt.strftime("%d %b %Y"),
-                }),
-                width="stretch",
-                hide_index=True,
-            )
-            st.caption(f"Together these cost about {format_inr(recurring['yearly'].sum())} a year.")
+            st.subheader("Recurring payments")
+            recurring = recurring_payments(df_c)
+            if recurring.empty:
+                st.caption("No steady monthly payments found. These need at least 3 months of history.")
+            else:
+                st.dataframe(
+                    pd.DataFrame({
+                        "Payee": recurring["payee"].str.title(), "Category": recurring["category"],
+                        "Per month": recurring["monthly"].map(format_inr), "Per year": recurring["yearly"].map(format_inr),
+                        "Last paid": recurring["last_paid"].dt.strftime("%d %b %Y"),
+                    }), width="stretch", hide_index=True)
+                st.caption(f"Together these cost about {format_inr(recurring['yearly'].sum())} a year.")
 
     with st.expander("View chart numbers as a table"):
-        left, right = st.columns(2)
-        left.dataframe(
-            pd.DataFrame({
-                "Category": totals.index,
-                "Spent": totals.map(format_inr).values,
-                "Share": (totals / totals.sum()).map("{:.1%}".format).values,
-            }),
-            width="stretch",
-            hide_index=True,
-        )
-        right.dataframe(
-            pd.DataFrame({
-                "Month": [p.strftime("%b %Y") for p in trend.index],
-                "Spent": trend.map(format_inr).values,
-            }),
-            width="stretch",
-            hide_index=True,
-        )
+        l, r = st.columns(2)
+        l.dataframe(pd.DataFrame({"Category": totals_f.index, "Spent": totals_f.map(format_inr).values,
+                                  "Share": (totals_f / totals_f.sum()).map("{:.1%}".format).values}), width="stretch", hide_index=True)
+        mm = category_by_month(df_c, all_months).sum(axis=1)
+        r.dataframe(pd.DataFrame({"Month": mm.index, "Spent": mm.map(format_inr).values}), width="stretch", hide_index=True)
 
 st.divider()
 st.subheader("Check your categories")
-st.write("Spotted a wrong category? Change it in the **Category** column and every chart above updates.")
+st.write("Spotted a wrong category? Change it in the **Category** column and every chart above updates. "
+         "The table follows your filters.")
 
 to_check = int(df["needs_review"].sum())
 left, right, reset = st.columns([2, 2, 1])
 only_review = left.toggle(f"Only show rows to check ({to_check})", value=False, disabled=to_check == 0)
 right.toggle("Apply my change to all payments with this payee", value=True, key="apply_to_payee")
-reset.button(
-    "Undo my changes",
-    on_click=reset_edits,
-    disabled=not st.session_state["category_overrides"],
-    width="stretch",
-)
+reset.button("Undo my changes", on_click=reset_edits, disabled=not st.session_state["category_overrides"], width="stretch")
+search = st.text_input("Search payee", key="f_search", placeholder="e.g. swiggy")
 
-view = df[df["needs_review"]] if only_review else df
+view_rows = filter_rows(df, categories=cats, months=months, payee=payee, search=search)
+if only_review:
+    view_rows = view_rows[view_rows["needs_review"]]
 editor_key = f"category_editor_{st.session_state['editor_version']}_{only_review}"
 st.data_editor(
     pd.DataFrame({
-        "date": view["date"],
-        "payee": view["payee"].str.title(),
-        "debit": view["debit"],
-        "credit": view["credit"],
-        "category": view["category"],
-        "decided_by": view["source"].map(SOURCE_LABELS),
+        "date": view_rows["date"], "payee": view_rows["payee"].str.title(), "debit": view_rows["debit"],
+        "credit": view_rows["credit"], "category": view_rows["category"], "decided_by": view_rows["source"].map(SOURCE_LABELS),
     }).reset_index(drop=True),
-    key=editor_key,
-    on_change=save_edits,
-    args=(editor_key, view.index.tolist()),
-    width="stretch",
-    height=420,
-    hide_index=True,
+    key=editor_key, on_change=save_edits, args=(editor_key, view_rows.index.tolist()),
+    width="stretch", height=420, hide_index=True,
     disabled=["date", "payee", "debit", "credit", "decided_by"],
     column_config={
         "date": st.column_config.DateColumn("Date", format="DD MMM YYYY"),

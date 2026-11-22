@@ -148,3 +148,44 @@ def test_page_totals_follow_a_correction():
     page.run()
     assert not page.exception
     assert metric(page, "Total spent") == format_inr(expected)
+
+
+def test_filter_rows_and_month_labels(df):
+    from core.spending import filter_rows, month_labels
+    assert month_labels(df)[0] == "Jan 26"
+    only_food = filter_rows(df, categories=["Food & dining"])
+    assert set(only_food["category"]) == {"Food & dining"}
+    assert filter_rows(df, months=["Jan 26"]).shape[0] == df.shape[0] - 1      # the March payment drops out
+    assert filter_rows(df, months=["Dec 25"]).empty
+    assert set(filter_rows(df, payee="amazon")["payee"]) == {"amazon"}
+    assert not filter_rows(df, search="SWIG").empty
+
+
+def test_category_by_month_and_daily(df):
+    from core.spending import category_by_month, daily_spend, month_labels, payee_payments, weekday_average
+    months = month_labels(df)
+    m = category_by_month(df, months)
+    assert list(m.index) == months
+    assert m.loc["Jan 26", "Food & dining"] == 500          # 300 + 200
+    assert m.loc["Jan 26", "Shopping"] == 600                # 1000 - 400 refund
+    d = daily_spend(df)
+    assert d["amount"].sum() == 1799        # a refund on another day is not netted off a day with no spending
+    days = pd.date_range(df["date"].min(), df["date"].max(), freq="D")
+    assert weekday_average(d, days).shape == (7,)
+    assert len(payee_payments(df, "swiggy")) == 2
+
+
+def test_spending_page_filters_change_the_numbers():
+    page = str(ROOT / "pages" / "2_My_Spending.py")
+    at = AppTest.from_file(page, default_timeout=90)
+    at.session_state["transactions"] = parse_statement(ROOT / "data" / "demo_statement.csv", "standard")
+    at.run()
+    assert not at.exception
+    everything = [m.value for m in at.metric]
+    at.session_state["f_cats"] = ["Food & dining"]
+    at.session_state["f_months"] = ["Jul 26"]
+    at.run()
+    assert not at.exception
+    filtered = [m.value for m in at.metric]
+    assert filtered[0] != everything[0]            # total spent changes with the filters
+    assert filtered[0] == filtered[2]              # only an avoidable category is selected

@@ -120,3 +120,62 @@ def summary(df: pd.DataFrame) -> dict:
         "transfers_out": sent,
         "months": months,
     }
+
+
+def month_labels(df: pd.DataFrame) -> list[str]:
+    """Every calendar month the statement covers, oldest first, like 'May 26'."""
+    if df.empty:
+        return []
+    return [p.strftime("%b %y") for p in pd.period_range(df["date"].min(), df["date"].max(), freq="M")]
+
+
+def filter_rows(df: pd.DataFrame, categories: list[str] | None = None, months: list[str] | None = None,
+                payee: str | None = None, search: str = "") -> pd.DataFrame:
+    """Rows matching the chosen categories, months (labels from month_labels), payee and search text."""
+    out = df
+    if categories:
+        out = out[out["category"].isin(categories)]
+    if months:
+        out = out[out["date"].dt.strftime("%b %y").isin(months)]
+    if payee:
+        out = out[out["payee"] == payee]
+    if search.strip():
+        out = out[out["payee"].str.contains(search.strip(), case=False, regex=False)]
+    return out
+
+
+def category_by_month(df: pd.DataFrame, month_order: list[str]) -> pd.DataFrame:
+    """Spend per category for each month (rows = month labels, columns = categories in fixed order)."""
+    rows = _spending(df)
+    if rows.empty:
+        return pd.DataFrame(index=month_order)
+    rows["month"] = rows["date"].dt.strftime("%b %y")
+    pivot = rows.pivot_table(index="month", columns="category", values="amount", aggfunc="sum", fill_value=0.0)
+    pivot = pivot.reindex(month_order, fill_value=0.0).clip(lower=0)
+    cols = [c for c in SPENDING_CATEGORIES if c in pivot.columns and pivot[c].sum() > 0]
+    return pivot[cols]
+
+
+def daily_spend(df: pd.DataFrame) -> pd.DataFrame:
+    """Spend per day with the biggest payees that day: columns date, amount, payees."""
+    rows = _spending(df)
+    if rows.empty:
+        return pd.DataFrame(columns=["date", "amount", "payees"])
+    rows["day"] = rows["date"].dt.normalize()
+    grouped = rows.groupby("day").agg(amount=("amount", "sum"))
+    top = rows.sort_values("amount", ascending=False).groupby("day")["payee"].apply(
+        lambda s: ", ".join(dict.fromkeys(p.title() for p in s.head(3))))
+    out = grouped.join(top.rename("payees")).reset_index().rename(columns={"day": "date"})
+    return out[out["amount"] > 0].reset_index(drop=True)
+
+
+def weekday_average(daily: pd.DataFrame, all_days: pd.DatetimeIndex) -> pd.Series:
+    """Average spend for each weekday (Mon=0) over every calendar day in the range, zero-spend days included."""
+    full = daily.set_index("date")["amount"].reindex(all_days, fill_value=0.0)
+    return full.groupby(full.index.dayofweek).mean().reindex(range(7), fill_value=0.0)
+
+
+def payee_payments(df: pd.DataFrame, payee: str) -> pd.DataFrame:
+    """Every payment to one payee, newest first: date, amount, category."""
+    rows = df[(df["payee"] == payee) & (df["debit"] > 0)]
+    return rows[["date", "debit", "category"]].rename(columns={"debit": "amount"}).sort_values("date", ascending=False).reset_index(drop=True)
