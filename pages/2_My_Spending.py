@@ -2,7 +2,6 @@
 from functools import partial
 from pathlib import Path
 
-import numpy as np
 import pandas as pd
 import plotly.graph_objects as go
 import streamlit as st
@@ -14,7 +13,6 @@ from core.spending import (
     apply_overrides,
     by_category,
     category_by_month,
-    daily_spend,
     filter_rows,
     format_inr,
     month_labels,
@@ -22,7 +20,6 @@ from core.spending import (
     recurring_payments,
     same_payee_ids,
     top_merchants,
-    weekday_average,
 )
 from core.ui import clear_user_data, load_categorized, page_header, setup_page
 
@@ -46,26 +43,18 @@ mode = "dark" if st.context.theme.type == "dark" else "light"
 colors = dict(zip(SPENDING_CATEGORIES, SERIES[mode] + EXTRA[mode]))
 ink = INK[mode]
 PLOT_CONFIG = {"displayModeBar": False}
-WEEKDAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
 
 
 # ---------- filter state ----------
 def reset_filters() -> None:
     st.session_state.update(f_cats=[], f_months=[], f_payee=None, f_search="")
-    for k in ("ver_cat", "ver_month", "ver_merch"):
+    for k in ("ver_month", "ver_merch"):
         st.session_state[k] = st.session_state.get(k, 0) + 1
 
 
 def toggle(list_key: str, value: str) -> None:
     cur = list(st.session_state.get(list_key) or [])
     st.session_state[list_key] = [c for c in cur if c != value] if value in cur else cur + [value]
-
-
-def click_category(chart_key: str) -> None:
-    pts = st.session_state[chart_key]["selection"]["points"]
-    if pts:
-        toggle("f_cats", pts[0]["y"])
-    st.session_state["ver_cat"] += 1               # forget the chart's own selection: the pills show it instead
 
 
 def click_month(chart_key: str) -> None:
@@ -113,30 +102,42 @@ def base_layout(height: int) -> dict:
     }
 
 
-def category_bars(totals: pd.Series, selected: list[str]) -> go.Figure:
-    """One bar per category, biggest first. Hatched = avoidable. Click a bar to filter."""
+def _fade(hex_color: str, alpha: float) -> str:
+    h = hex_color.lstrip("#")
+    return f"rgba({int(h[0:2], 16)},{int(h[2:4], 16)},{int(h[4:6], 16)},{alpha})"
+
+
+def category_pie(totals: pd.Series, selected: list[str]) -> go.Figure:
+    """Share of spending by category. Hatched slices are avoidable; picked categories are pulled out."""
     totals = totals.sort_values(ascending=False)
-    share = totals / totals.sum()
     cats = list(totals.index)
-    dim = [0.28 if selected and c not in selected else 1.0 for c in cats]
-    fig = go.Figure(go.Bar(
-        x=totals.values, y=cats, orientation="h",
+    fills = [_fade(colors[c], 0.3 if selected and c not in selected else 1.0) for c in cats]
+    fig = go.Figure(go.Pie(
+        labels=cats, values=totals.values, hole=0.4, sort=False, direction="clockwise",
         marker={
-            "color": [colors[c] for c in cats], "opacity": dim, "cornerradius": 5,
-            "pattern": {"shape": ["/" if c in AVOIDABLE_CATEGORIES else "" for c in cats], "size": 7, "solidity": 0.32,
-                        "fgcolor": "rgba(255,255,255,.55)"},
+            "colors": fills,
+            "line": {"color": ink["surface"], "width": 2},
+            # In a pie the stripes are drawn over `bgcolor`, so every slice needs its colour there too.
+            "pattern": {"shape": ["/" if c in AVOIDABLE_CATEGORIES else "" for c in cats], "bgcolor": fills, "size": 7,
+                        "solidity": 0.32, "fgcolor": "rgba(255,255,255,.6)"},
         },
-        text=[f"{format_inr(v)} · {s:.0%}" for v, s in zip(totals.values, share)],
-        textposition="outside", textfont={"color": ink["text"]}, cliponaxis=False,
+        pull=[0.07 if c in selected else 0 for c in cats],
+        textinfo="percent", textposition="inside", insidetextorientation="horizontal",
+        textfont={"color": "#ffffff", "size": 13},
         customdata=[format_inr(v) for v in totals.values],
-        hovertemplate="<b>%{y}</b><br>%{customdata}<br><i>Click to filter</i><extra></extra>",
+        hovertemplate="<b>%{label}</b><br>%{customdata} · %{percent}<extra></extra>",
     ))
-    layout = base_layout(max(260, 44 * len(cats)))
-    layout["margin"] = {"l": 8, "r": 120, "t": 8, "b": 8}
-    fig.update_layout(**layout, bargap=0.38, showlegend=False, clickmode="event+select")
-    fig.update_xaxes(visible=False, rangemode="tozero")
-    fig.update_yaxes(autorange="reversed", showgrid=False, ticks="", linecolor=ink["grid"], automargin=True)
-    fig.update_traces(selected={"marker": {"opacity": 1}}, unselected={"marker": {"opacity": 1}})
+    layout = base_layout(330)
+    layout["margin"] = {"l": 8, "r": 8, "t": 8, "b": 8}
+    fig.update_layout(
+        **layout, clickmode="event+select",
+        legend={"orientation": "v", "y": 0.5, "x": 1.0, "xanchor": "right", "itemclick": False, "itemdoubleclick": False,
+                "font": {"size": 12, "color": ink["text"]}},
+        annotations=[{"text": f"<b>{format_inr(totals.sum())}</b><br><span style='font-size:11px'>spent</span>", "showarrow": False,
+                      "x": 0.31, "y": 0.5, "xanchor": "center", "yanchor": "middle", "xref": "paper", "yref": "paper",
+                      "font": {"size": 15, "color": ink["text"]}}],
+    )
+    fig.update_traces(domain={"x": [0, 0.62], "y": [0, 1]})
     return fig
 
 
@@ -167,38 +168,6 @@ def month_columns(matrix: pd.DataFrame, selected: list[str], share_view: bool) -
                       annotation_text=f"average {format_inr(avg)}", annotation_position="top left",
                       annotation_font={"color": ink["muted"], "size": 11})
     fig.update_traces(selected={"marker": {"opacity": 1}}, unselected={"marker": {"opacity": 1}})
-    return fig
-
-
-def calendar_heatmap(daily: pd.DataFrame, start: pd.Timestamp, end: pd.Timestamp) -> go.Figure:
-    """GitHub-style calendar: a square per day, darker = more spent. Hover for the day's payees."""
-    first = start - pd.Timedelta(days=start.dayofweek)             # Monday of the first week
-    days = pd.date_range(first, end, freq="D")
-    weeks = (len(days) + 6) // 7
-    z = np.full((7, weeks), np.nan)
-    hover = [[""] * weeks for _ in range(7)]
-    lookup = daily.set_index("date")
-    for i, day in enumerate(days):
-        r, c = day.dayofweek, i // 7
-        if day < start:
-            continue
-        amount = float(lookup["amount"].get(day, 0.0))
-        z[r, c] = amount
-        names = lookup["payees"].get(day, "") if amount else "No spending"
-        hover[r][c] = f"<b>{day:%a %d %b}</b><br>{format_inr(amount)}<br>{names}"
-    top = float(np.nanmax(z)) if np.isfinite(z).any() and np.nanmax(z) > 0 else 1.0
-    fig = go.Figure(go.Heatmap(
-        z=z, text=hover, hovertemplate="%{text}<extra></extra>", xgap=3, ygap=3,
-        colorscale=[[0, ink["heat"][0]], [1, ink["heat"][1]]], zmin=0, zmax=top, showscale=False,
-    ))
-    # A month label above the first week that really starts in that month (clamped to the statement's first day).
-    week_start = [max(d, start) for d in days[::7]]
-    ticks = [i for i, d in enumerate(week_start) if i == 0 or d.month != week_start[i - 1].month]
-    layout = base_layout(236)
-    layout["margin"] = {"l": 44, "r": 8, "t": 30, "b": 8}
-    fig.update_layout(**layout)
-    fig.update_xaxes(tickvals=ticks, ticktext=[week_start[i].strftime("%b") for i in ticks], showgrid=False, zeroline=False, side="top", ticks="")
-    fig.update_yaxes(tickvals=[0, 2, 4, 6], ticktext=["Mon", "Wed", "Fri", "Sun"], autorange="reversed", showgrid=False, zeroline=False, ticks="")
     return fig
 
 
@@ -236,7 +205,7 @@ def payee_timeline(pay: pd.DataFrame, color: str) -> go.Figure:
 
 
 # ---------- page ----------
-page_header("My Spending", "📊", "Click any chart to filter everything else. Spot a pattern, then drill into it.", step=2)
+page_header("My Spending", "📊", "Pick filters (or click a month column) to focus every chart. Then drill into a merchant.", step=2)
 
 raw = st.session_state.get("transactions")
 if raw is None:
@@ -257,7 +226,7 @@ df = load_categorized()          # categorised once per statement; corrections s
 # A new statement means new months and categories: start with clean filters.
 if st.session_state.get("f_for") != st.session_state["categorized_for"]:
     st.session_state["f_for"] = st.session_state["categorized_for"]
-    for k in ("ver_cat", "ver_month", "ver_merch"):
+    for k in ("ver_month", "ver_merch"):
         st.session_state[k] = 0
     st.session_state.update(f_cats=[], f_months=[], f_payee=None, f_search="")
 
@@ -275,16 +244,17 @@ if all_totals.empty:
 
 # ----- filters (charts below write into these too) -----
 with st.container(border=True, key="card_filters"):
-    st.pills("Categories", options=list(all_totals.index), selection_mode="multi", key="f_cats",
-             help="Pick one or more, or click a bar in the chart below.")
-    st.segmented_control("Months", options=all_months, selection_mode="multi", key="f_months",
-                         help="Pick one or more, or click a column in the monthly chart.")
+    f1, f2, f3 = st.columns([3, 3, 1], vertical_alignment="bottom")
+    f1.multiselect("Categories", options=list(all_totals.index), key="f_cats", placeholder="All categories",
+                   help="Pick one or more categories.")
+    f2.multiselect("Months", options=all_months, key="f_months", placeholder="All months",
+                   help="Pick one or more, or click a column in the monthly chart.")
     chips = list(st.session_state["f_cats"]) + list(st.session_state["f_months"])
     if st.session_state.get("f_payee"):
         chips.append(st.session_state["f_payee"].title())
-    c_a, c_b = st.columns([5, 1], vertical_alignment="center")
-    c_a.caption("Filtering by: " + " · ".join(chips) if chips else "Showing everything. Click a bar or column to filter.")
-    c_b.button("Clear all", on_click=reset_filters, disabled=not chips, width="stretch")
+    f3.button("Clear all", on_click=reset_filters, disabled=not chips, width="stretch")
+    if chips:
+        st.caption("Filtering by: " + " · ".join(chips))
 
 cats, months = st.session_state["f_cats"], st.session_state["f_months"]
 payee = st.session_state.get("f_payee")
@@ -315,10 +285,8 @@ else:
     left, right = st.columns(2)
     with left:
         st.subheader("Where it went")
-        st.caption("Hatched bars are avoidable. Click a bar to filter by that category.")
-        key = f"cat_chart_{st.session_state.get('ver_cat', 0)}"
-        st.plotly_chart(category_bars(totals_m, cats), width="stretch", theme=None, config=PLOT_CONFIG,
-                        on_select=partial(click_category, key), selection_mode="points", key=key)
+        st.caption("Hatched slices are avoidable. Hover for amounts; use the Categories filter to focus.")
+        st.plotly_chart(category_pie(totals_m, cats), width="stretch", theme=None, config=PLOT_CONFIG)
     with right:
         st.subheader("Month by month")
         view = st.segmented_control("Show", ["Amount", "Share of month"], default="Amount", key="month_view",
@@ -327,15 +295,6 @@ else:
         key = f"month_chart_{st.session_state.get('ver_month', 0)}"
         st.plotly_chart(month_columns(matrix, months, view == "Share of month"), width="stretch", theme=None,
                         config=PLOT_CONFIG, on_select=partial(click_month, key), selection_mode="points", key=key)
-
-    st.subheader("Every day at a glance")
-    daily = daily_spend(df_f)
-    start, end = df["date"].min().normalize(), df["date"].max().normalize()
-    st.plotly_chart(calendar_heatmap(daily, start, end), width="stretch", theme=None, config=PLOT_CONFIG)
-    wk = weekday_average(daily, pd.date_range(start, end, freq="D"))
-    if wk.max() > 0:
-        st.caption(f"Busiest day of the week: {WEEKDAYS[int(wk.idxmax())]}, averaging {format_inr(wk.max())} "
-                   f"(quietest: {WEEKDAYS[int(wk.idxmin())]}, {format_inr(wk.min())}). Darker squares are bigger days.")
 
     left, right = st.columns(2)
     top = top_merchants(df_f)
@@ -382,38 +341,47 @@ else:
         r.dataframe(pd.DataFrame({"Month": mm.index, "Spent": mm.map(format_inr).values}), width="stretch", hide_index=True)
 
 st.divider()
-st.subheader("Check your categories")
-st.write("Spotted a wrong category? Change it in the **Category** column and every chart above updates. "
-         "The table follows your filters.")
-
 to_check = int(df["needs_review"].sum())
-left, right, reset = st.columns([2, 2, 1])
-only_review = left.toggle(f"Only show rows to check ({to_check})", value=False, disabled=to_check == 0)
-right.toggle("Apply my change to all payments with this payee", value=True, key="apply_to_payee")
-reset.button("Undo my changes", on_click=reset_edits, disabled=not st.session_state["category_overrides"], width="stretch")
-search = st.text_input("Search payee", key="f_search", placeholder="e.g. swiggy")
+show_editor = st.session_state.get("show_editor", False)
+check_col, next_col = st.columns([1, 1], vertical_alignment="center")
+if check_col.button(("Hide category checker" if show_editor else f"Check your categories ({to_check} to review)"),
+                    key="toggle_editor"):
+    st.session_state["show_editor"] = not show_editor
+    st.rerun()
+if next_col.button("Next: My Surplus →", type="primary", width="stretch", key="next_surplus"):
+    st.switch_page("pages/3_My_Surplus.py")
 
-view_rows = filter_rows(df, categories=cats, months=months, payee=payee, search=search)
-if only_review:
-    view_rows = view_rows[view_rows["needs_review"]]
-editor_key = f"category_editor_{st.session_state['editor_version']}_{only_review}"
-st.data_editor(
-    pd.DataFrame({
-        "date": view_rows["date"], "payee": view_rows["payee"].str.title(), "debit": view_rows["debit"],
-        "credit": view_rows["credit"], "category": view_rows["category"], "decided_by": view_rows["source"].map(SOURCE_LABELS),
-    }).reset_index(drop=True),
-    key=editor_key, on_change=save_edits, args=(editor_key, view_rows.index.tolist()),
-    width="stretch", height=420, hide_index=True,
-    disabled=["date", "payee", "debit", "credit", "decided_by"],
-    column_config={
-        "date": st.column_config.DateColumn("Date", format="DD MMM YYYY"),
-        "payee": st.column_config.TextColumn("Payee"),
-        "debit": st.column_config.NumberColumn("Money out ₹", format="%.2f"),
-        "credit": st.column_config.NumberColumn("Money in ₹", format="%.2f"),
-        "category": st.column_config.SelectboxColumn("Category", options=CATEGORIES, required=True),
-        "decided_by": st.column_config.TextColumn("Decided by"),
-    },
-)
+if st.session_state.get("show_editor", False):
+    st.subheader("Check your categories")
+    st.write("Spotted a wrong category? Change it in the **Category** column and every chart above updates. "
+             "The table follows your filters.")
+    left, right, reset = st.columns([2, 2, 1])
+    only_review = left.toggle(f"Only show rows to check ({to_check})", value=False, disabled=to_check == 0)
+    right.toggle("Apply my change to all payments with this payee", value=True, key="apply_to_payee")
+    reset.button("Undo my changes", on_click=reset_edits, disabled=not st.session_state["category_overrides"], width="stretch")
+    search = st.text_input("Search payee", key="f_search", placeholder="e.g. swiggy")
+
+    view_rows = filter_rows(df, categories=cats, months=months, payee=payee, search=search)
+    if only_review:
+        view_rows = view_rows[view_rows["needs_review"]]
+    editor_key = f"category_editor_{st.session_state['editor_version']}_{only_review}"
+    st.data_editor(
+        pd.DataFrame({
+            "date": view_rows["date"], "payee": view_rows["payee"].str.title(), "debit": view_rows["debit"],
+            "credit": view_rows["credit"], "category": view_rows["category"], "decided_by": view_rows["source"].map(SOURCE_LABELS),
+        }).reset_index(drop=True),
+        key=editor_key, on_change=save_edits, args=(editor_key, view_rows.index.tolist()),
+        width="stretch", height=420, hide_index=True,
+        disabled=["date", "payee", "debit", "credit", "decided_by"],
+        column_config={
+            "date": st.column_config.DateColumn("Date", format="DD MMM YYYY"),
+            "payee": st.column_config.TextColumn("Payee"),
+            "debit": st.column_config.NumberColumn("Money out ₹", format="%.2f"),
+            "credit": st.column_config.NumberColumn("Money in ₹", format="%.2f"),
+            "category": st.column_config.SelectboxColumn("Category", options=CATEGORIES, required=True),
+            "decided_by": st.column_config.TextColumn("Decided by"),
+        },
+    )
 
 if st.button("🗑️ Delete my data"):
     clear_user_data()

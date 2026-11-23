@@ -189,3 +189,19 @@ def test_spending_page_filters_change_the_numbers():
     filtered = [m.value for m in at.metric]
     assert filtered[0] != everything[0]            # total spent changes with the filters
     assert filtered[0] == filtered[2]              # only an avoidable category is selected
+
+
+def test_spending_page_checker_is_hidden_until_asked_and_next_button_exists():
+    page = str(ROOT / "pages" / "2_My_Spending.py")
+    at = AppTest.from_file(page, default_timeout=90)
+    at.session_state["transactions"] = parse_statement(ROOT / "data" / "demo_statement.csv", "standard")
+    at.run()
+    assert not at.exception
+    assert len(at.multiselect) == 2                                   # categories and months are dropdown filters
+    assert not at.dataframe or all("Category" not in list(d.value.columns) or len(d.value) < 50 for d in at.dataframe)
+    assert not any("Spotted a wrong category" in m.value for m in at.markdown)      # the checker starts closed
+    assert any(b.label == "Next: My Surplus →" for b in at.button)
+    check = next(b for b in at.button if b.label.startswith("Check your categories"))
+    check.click().run()
+    assert not at.exception
+    assert any("Spotted a wrong category" in m.value for m in at.markdown)          # opens only after the click
