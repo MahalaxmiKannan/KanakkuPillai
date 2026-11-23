@@ -81,7 +81,7 @@ def test_pages_render():
 
     root = Path(__file__).resolve().parents[1]
     demo = parse_statement(root / "data" / "demo_statement.csv", "standard")
-    for page in ["3_My_Surplus.py", "4_Risk_Quiz.py", "5_Learn.py"]:
+    for page in ["5_My_Surplus.py", "3_Risk_Quiz.py", "4_Learn.py"]:
         at = AppTest.from_file(str(root / "app.py"), default_timeout=30)
         at.session_state["transactions"] = demo
         at.run()
@@ -89,7 +89,7 @@ def test_pages_render():
         assert not at.exception, (page, at.exception)
     at = AppTest.from_file(str(root / "app.py"), default_timeout=30)
     at.run()
-    at.switch_page("pages/3_My_Surplus.py").run()   # no statement loaded: friendly message, no crash
+    at.switch_page("pages/5_My_Surplus.py").run()   # no statement loaded: friendly message, no crash
     assert not at.exception
 
 
@@ -127,7 +127,7 @@ def test_surplus_page_renders_and_lever_changes_the_plan():
     from streamlit.testing.v1 import AppTest
     from core.parsers import parse_statement
     root = Path(__file__).resolve().parents[1]
-    at = AppTest.from_file(str(root / "pages" / "3_My_Surplus.py"), default_timeout=90)
+    at = AppTest.from_file(str(root / "pages" / "5_My_Surplus.py"), default_timeout=90)
     at.session_state["transactions"] = parse_statement(root / "data" / "demo_statement.csv", "standard")
     at.run()
     assert not at.exception
@@ -137,3 +137,20 @@ def test_surplus_page_renders_and_lever_changes_the_plan():
     assert not at.exception
     assert at.session_state["surplus"]["safe_to_set_aside"] == base            # the page keeps the real figure; only the lever is a what-if
     assert any("With the trim" in m.value for m in at.markdown)
+
+
+def test_journey_order_is_consistent():
+    """The nav, the step tracker and the page files all follow Upload > Spending > Quiz > Learn > Surplus > Simulator > Scam."""
+    import re
+    from core.ui import STEPS
+    order = ["Upload", "Spending", "Risk quiz", "Learn", "Surplus", "Simulator", "Scam check"]
+    assert [name for name, _ in STEPS] == order
+    nav = (root_dir() / "app.py").read_text(encoding="utf-8")
+    assert [p for p, _ in re.findall(r'pages/(\d)_(\w+)\.py', nav)] == ["1", "2", "3", "4", "5", "6", "7", "8"]
+    for number, (_, path) in enumerate(STEPS, start=1):
+        assert path.startswith(f"pages/{number}_") and (root_dir() / path).exists()
+
+
+def root_dir():
+    from pathlib import Path
+    return Path(__file__).resolve().parents[1]

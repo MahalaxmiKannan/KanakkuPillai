@@ -88,7 +88,8 @@ def test_home_story_data_is_consistent():
     assert d["items"][-1]["group"] == "left"
     s = d["sim"]
     assert len(s["p50"]) == s["years"] * 12 and s["p10"][-1] < s["p50"][-1] < s["p90"][-1]
-    assert len(chapters(d)) == 8
+    assert [c["name"] for c in chapters(d)] == [
+        "Payday", "Upload", "My Spending", "Risk Quiz", "Learn", "My Surplus", "Simulator", "Scam Checker"]
     assert len(s["paths"]) > 0 and len(s["paths"][0]) == 120
     assert len(d["txs"]) == 14 and d["masks"] and "@" in d["masks"][0]["raw"]
     html = build_story(d)

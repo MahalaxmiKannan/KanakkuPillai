@@ -5,7 +5,7 @@ from core.risk_quiz import QUESTIONS, result
 from core.ui import page_header, setup_page
 
 setup_page("Risk Quiz", "🧭")
-page_header("Risk Quiz", "🧭", "Nine questions about how you feel about risk. There are no right answers.", step=4)
+page_header("Risk Quiz", "🧭", "Nine questions about how you feel about risk. There are no right answers.", step=3)
 
 with st.form("risk_quiz"):
     picks = []
@@ -30,4 +30,4 @@ if res:
     for note in res["notes"]:
         st.warning(note)
     st.caption("A quiz can't know your whole situation. This describes comfort with risk; it doesn't tell you what to buy.")
-    st.page_link("pages/5_Learn.py", label="Next: Learn about the options →")
+    st.page_link("pages/4_Learn.py", label="Next: Learn about the options →")

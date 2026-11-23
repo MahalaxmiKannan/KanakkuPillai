@@ -6,14 +6,16 @@ A personal-finance awareness app for young people in India. Upload a bank statem
 
 ## Pages
 
+The pages follow one path: look at your money, learn, then decide and try it.
+
 | Step | Page | What it does | Status |
 |---|---|---|---|
 | 1 | Upload | SBI / HDFC / standard CSV or Excel, masks account numbers, or try a demo statement | Done |
-| 2 | My Spending | Rules + ML categoriser, review and correct low-confidence rows | Done |
-| 3 | My Surplus | Income vs essentials vs the rest, emergency fund first | Done |
-| 4 | Risk Quiz | Short quiz that gives a risk profile | Done |
-| 5 | Learn | Money Handbook flipbook: savings account, FD, RD, PPF, index fund SIP, gold, NPS | Done |
-| 6 | Simulator | Monte Carlo SIP on real Nifty 50 history, fan chart, FD line, inflation | Done |
+| 2 | My Spending | Rules + ML categoriser, dropdown filters, month chart, merchant drill-down, correct low-confidence rows | Done |
+| 3 | Risk Quiz | Short quiz that gives a risk profile | Done |
+| 4 | Learn | Money Handbook flipbook: savings account, FD, RD, PPF, index fund SIP, gold, NPS | Done |
+| 5 | My Surplus | One screen: income vs essentials vs the rest, a what-if lever, runway to an emergency fund | Done |
+| 6 | Simulator | Monte Carlo SIP on real Nifty 50 history, fan chart, FD line, inflation; pre-filled from the surplus | Done |
 | 7 | Scam Checker | Red-flag rules + NLP model | Day 5 |
 | 8 | About | How the models work, numbers, limits | Day 6 |
 

@@ -8,9 +8,9 @@ APP_NAME = "KanakkuPillai"
 STEPS = [
     ("Upload", "pages/1_Upload.py"),
     ("Spending", "pages/2_My_Spending.py"),
-    ("Surplus", "pages/3_My_Surplus.py"),
-    ("Risk quiz", "pages/4_Risk_Quiz.py"),
-    ("Learn", "pages/5_Learn.py"),
+    ("Risk quiz", "pages/3_Risk_Quiz.py"),
+    ("Learn", "pages/4_Learn.py"),
+    ("Surplus", "pages/5_My_Surplus.py"),
     ("Simulator", "pages/6_Simulator.py"),
     ("Scam check", "pages/7_Scam_Checker.py"),
 ]
@@ -189,17 +189,22 @@ def setup_page(title: str, icon: str = "💰") -> None:
     show_disclaimer()
 
 
+def step_tracker(step: int) -> None:
+    """The row of numbered pills showing where you are in the journey (1-based, matches STEPS)."""
+    pills = []
+    for i, (name, _) in enumerate(STEPS, start=1):
+        state = "now" if i == step else "done" if i < step else ""
+        pills.append(f'<span class="kp-step {state}">{i}. {name}</span>')
+    st.markdown(f'<div class="kp-steps">{"".join(pills)}</div>', unsafe_allow_html=True)
+
+
 def page_header(title: str, icon: str = "", subtitle: str = "", step: int | None = None) -> None:
     """Title, optional one-line subtitle, and a tracker showing where you are in the journey.
 
     step is 1-based and matches STEPS.
     """
     if step is not None:
-        pills = []
-        for i, (name, _) in enumerate(STEPS, start=1):
-            state = "now" if i == step else "done" if i < step else ""
-            pills.append(f'<span class="kp-step {state}">{i}. {name}</span>')
-        st.markdown(f'<div class="kp-steps">{"".join(pills)}</div>', unsafe_allow_html=True)
+        step_tracker(step)
     st.title(f"{icon} {title}".strip())
     if subtitle:
         st.markdown(f'<div class="kp-sub">{subtitle}</div>', unsafe_allow_html=True)

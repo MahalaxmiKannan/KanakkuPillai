@@ -200,7 +200,7 @@ def test_spending_page_checker_is_hidden_until_asked_and_next_button_exists():
     assert len(at.multiselect) == 2                                   # categories and months are dropdown filters
     assert not at.dataframe or all("Category" not in list(d.value.columns) or len(d.value) < 50 for d in at.dataframe)
     assert not any("Spotted a wrong category" in m.value for m in at.markdown)      # the checker starts closed
-    assert any(b.label == "Next: My Surplus →" for b in at.button)
+    assert any(b.label == "Next: Risk Quiz →" for b in at.button)
     check = next(b for b in at.button if b.label.startswith("Check your categories"))
     check.click().run()
     assert not at.exception

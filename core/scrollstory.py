@@ -99,7 +99,8 @@ def story_data() -> dict:
 
 
 def chapters(d: dict) -> list[dict]:
-    """Title, copy and headline figure for each step."""
+    """Title, copy and headline figure for each step, in the order of the app: spending, then the quiz and Learn,
+    and only then the surplus and the simulator."""
     f = format_inr
     sim = d["sim"]
     lo, mid, hi = sim["p10"][-1], sim["p50"][-1], sim["p90"][-1]
@@ -112,24 +113,25 @@ def chapters(d: dict) -> list[dict]:
                   "file is read, before anything else happens. Nothing is saved."),
         dict(name="My Spending", url="my-spending", head=dict(value=d["avoidable"], inr=True, cap="a month on avoidable spending"),
              text=f"Every payment is sorted into a category. About {f(d['avoidable'])} a month goes on food delivery, shopping and "
-                  "subscriptions, the part most people can change. Fix any category the app gets wrong and every chart updates."),
-        dict(name="My Surplus", url="my-surplus", head=dict(value=d["left"], inr=True, cap="left over each month"),
-             text=f"Income minus spending leaves {f(d['left'])} a month. Before any investment risk, the app asks for an emergency "
-                  f"fund first: three months of essentials, {f(d['emergency']['target'])}. At this pace that takes about "
-                  f"{d['emergency']['years']} years, so the real lever is the spending."),
+                  "subscriptions, the part most people can change. Filter by category or month, drill into a merchant, fix any "
+                  "category the app gets wrong."),
         dict(name="Risk Quiz", url="risk-quiz", head=dict(text="Moderate", cap="an example result"),
-             text="Nine questions about time horizon, emergency cover and how you react to losses. An example answer is shown; "
-                  "'Moderate' here is a score of 18 out of 27. It describes comfort with risk, nothing more."),
+             text="Before any money moves, nine questions about time horizon, emergency cover and how you react to losses. An example "
+                  "answer is shown; 'Moderate' here is a score of 18 out of 27. It describes comfort with risk, nothing more."),
         dict(name="Learn", url="learn", head=dict(value=7, cap="options, compared"),
-             text="Seven options in plain language: savings account, FD, RD, PPF, index fund, gold and NPS. How easy it is to take "
-                  "money out, how much it can swing, how it's taxed. The chart is illustrative, not advice."),
+             text="Then learn what the options really are: savings account, FD, RD, PPF, index fund, gold and NPS. How easy it is to "
+                  "take money out, how much it can swing, how it's taxed. The chart is illustrative, not advice."),
+        dict(name="My Surplus", url="my-surplus", head=dict(value=d["left"], inr=True, cap="left over each month"),
+             text=f"Now bring it together. Income minus spending leaves {f(d['left'])} a month. An emergency fund comes first: three "
+                  f"months of essentials, {f(d['emergency']['target'])}, which at this pace takes about {d['emergency']['years']} years. "
+                  "Slide the lever to see how trimming avoidable spending changes that."),
         dict(name="Simulator", url="simulator", head=dict(value=mid, inr=True, cap=f"middle case after {sim['years']} years, today's money"),
-             text=f"A what-if: if a third of that avoidable spending went into a monthly SIP, that is about {f(sim['monthly'])} a month. "
+             text=f"Then try it. If a third of that avoidable spending went into a monthly SIP, that is about {f(sim['monthly'])} a month. "
                   f"Real Nifty 50 history is replayed 10,000 times. After {sim['years']} years: a bad case of {f(lo)}, a middle case of "
                   f"{f(mid)}, a good case of {f(hi)}. A range, not a prediction."),
         dict(name="Scam Checker", url="scam-checker", head=dict(text="High risk", cap="3 red flags in this message"),
-             text="Paste any investment message and the checker highlights its red flags. This example promises guaranteed returns, "
-                  "asks for an upfront fee and moves you to a private Telegram group. 'Low risk' never means 'safe'."),
+             text="Along the way, paste any investment message and the checker highlights its red flags. This example promises "
+                  "guaranteed returns, asks for an upfront fee and moves you to a private Telegram group. 'Low risk' never means 'safe'."),
     ]
 
 
@@ -431,10 +433,10 @@ const gl=el('g',{},g); [['9',0],['27',1]].forEach(([t,p])=>{const q=pt(p,R+26);c
 const needle=el('g',{},g); el('path',{d:`M${cx-6},${cy} L${cx},${cy-R+14} L${cx+6},${cy}Z`,fill:'#fff'},needle); el('circle',{cx,cy,r:11,fill:'#fff',stroke:'#0f5c43','stroke-width':4},needle);
 const gt=el('text',{x:cx,y:cy+42,'font-size':26,'font-weight':800,fill:'#fff','text-anchor':'middle'},g), gs=el('text',{x:cx,y:cy+60,'font-size':12.5,fill:'#fff','fill-opacity':.7,'text-anchor':'middle'},g);
 gs.textContent='18 of 27 · describes comfort with risk, not a product'; const gz=el('text',{x:cx,y:20,'font-size':13,fill:'#fff','fill-opacity':.8,'text-anchor':'middle'},g); gz.textContent='Your answers become a risk profile';
-function renderD(t){const q=clamp(1-sm((t-.36)/.12)); qd.style.opacity=q;qd.style.transform=`translateY(${(1-sm(t/.12))*18+(1-q)*-24}px) scale(${.96+.04*q})`;
+function renderD(t){const q=clamp(1-sm((t-.38)/.10)); qd.style.opacity=q;qd.style.transform=`translateY(${(1-sm(t/.12))*18+(1-q)*-24}px) scale(${.96+.04*q})`;
   opts.forEach((o,i)=>o.classList.toggle('sel',i===1&&t>.22));
-  const gp=sm((t-.5)/.12); g.style.opacity=gp; const k=eo((t-.58)/.38), p=.5*k+(k<1?.04*Math.sin(k*9)*(1-k):0);
-  needle.setAttribute('transform',`rotate(${-90+180*p} ${cx} ${cy})`); const lab=p<.36?'Conservative':p<.69?'Moderate':'Aggressive'; gt.textContent=t>.62?lab:'';}
+  const gp=sm((t-.47)/.10); g.style.opacity=gp; const k=eo((t-.55)/.40), p=.5*k+(k<1?.04*Math.sin(k*9)*(1-k):0);
+  needle.setAttribute('transform',`rotate(${-90+180*p} ${cx} ${cy})`); const lab=p<.36?'Conservative':p<.69?'Moderate':'Aggressive'; gt.textContent=t>.6?lab:'';}
 
 /* ----- scene E: options compared ----- */
 const pl=$('kpPlot'); pl.innerHTML=''; const PX0=100,PX1=610,PY0=330,PY1=60;
@@ -500,8 +502,16 @@ function drawParts(dt){cx2.clearRect(0,0,W,Hh); const k=sm((mood-.3)/.4);
     grad.addColorStop(0,`rgba(${c},${p.a})`);grad.addColorStop(1,`rgba(${c},0)`);cx2.fillStyle=grad;cx2.beginPath();cx2.arc(p.x,p.y,p.r*3,0,6.283);cx2.fill()})}
 
 /* ----- main loop ----- */
-const SCN=[['scA',.55,2.12],['scB',1.88,3.12],['scC',2.88,5.12],['scD',4.88,6.12],['scE',5.88,7.12],['scF',6.88,8.12],['scG',7.88,9.12]].map(([id,a,b])=>[$(id),a,b]);
-const fns=[t=>renderA(clamp((t.u-.85)/1)),t=>renderB(clamp(t.u-2)),t=>renderC(clamp(t.u-3,0,2)),t=>renderD(clamp(t.u-5)),t=>renderE(clamp(t.u-6)),t=>renderF(clamp(t.u-7)),t=>renderG(clamp(t.u-8))];
+// Scenes in app order. Each has one or more [from, to] windows in u; the flow scene shows for Spending (u 3 to 4) and
+// again for Surplus (u 6 to 7), picking up where it left off.
+const SCN=[
+ ['scA',[[.55,2.12]],t=>renderA(clamp((t.u-.85)/1))],
+ ['scB',[[1.88,3.12]],t=>renderB(clamp(t.u-2))],
+ ['scC',[[2.88,4.12],[5.88,7.12]],t=>renderC(t.u<5?clamp(t.u-3):1+clamp(t.u-6))],
+ ['scD',[[3.88,5.12]],t=>renderD(clamp(t.u-4))],
+ ['scE',[[4.88,6.12]],t=>renderE(clamp(t.u-5))],
+ ['scF',[[6.88,8.12]],t=>renderF(clamp(t.u-7))],
+ ['scG',[[7.88,9.12]],t=>renderG(clamp(t.u-8))]].map(([id,w,fn])=>[$(id),w,fn]);
 let last=performance.now(), lastU=-1, lastW=0;
 function frame(now){ if(stopped||!document.getElementById('kp-root')) return; requestAnimationFrame(frame);
   const dt=Math.min(50,now-last); last=now;
@@ -516,7 +526,7 @@ function render(u){
   chEls.forEach((c,i)=>{const t=u-(1+i), lead=i===0?.28:0, a=clamp((t+lead)/.2)*clamp((1-t)/.2); c.style.opacity=a; c.style.transform=`translateY(${(1-a)*(t<.5?30:-30)}px)`; c.style.pointerEvents=a>.6?'auto':'none';
     const sv=ST[i].head; figEls[i].textContent=sv.text?sv.text:(sv.inr?inr(sv.value*eo((t+lead)/.55)):Math.round(sv.value*eo((t+lead)/.55)).toLocaleString('en-IN'));});
   const vis=$('kpVis'), vp=win(u,.5,9.1,.4); vis.style.opacity=vp; vis.style.transform=`translateX(${(1-vp)*60}px)`;
-  const ctx={u}; SCN.forEach(([e,a,b],i)=>{const o=win(u,a,b,.24);e.style.opacity=o;e.style.pointerEvents='none'; if(o>0.001)fns[i](ctx)});
+  const ctx={u}; SCN.forEach(([e,w,fn])=>{const o=Math.max(...w.map(([a,b])=>win(u,a,b,.24)));e.style.opacity=o;e.style.pointerEvents='none'; if(o>0.001)fn(ctx)});
   const pos=clamp((u-1.5)/(N-1),0,1)*(N-1); const rp=pos/(N-1)*100;
   rail.style.opacity=win(u,.6,9.3,.35); $('kpDot').style.left=rp+'%'; $('kpFill').style.width=rp+'%';
   nodes.forEach((nd,i)=>{nd.classList.toggle('done',i<Math.round(pos)-0&&i<pos-.5);nd.classList.toggle('on',Math.round(pos)===i&&u>1.0&&u<9.1)});

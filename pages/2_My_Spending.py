@@ -348,8 +348,8 @@ if check_col.button(("Hide category checker" if show_editor else f"Check your ca
                     key="toggle_editor"):
     st.session_state["show_editor"] = not show_editor
     st.rerun()
-if next_col.button("Next: My Surplus →", type="primary", width="stretch", key="next_surplus"):
-    st.switch_page("pages/3_My_Surplus.py")
+if next_col.button("Next: Risk Quiz →", type="primary", width="stretch", key="next_quiz"):
+    st.switch_page("pages/3_Risk_Quiz.py")
 
 if st.session_state.get("show_editor", False):
     st.subheader("Check your categories")

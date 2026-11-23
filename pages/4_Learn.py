@@ -8,7 +8,7 @@ from core.flipbook import DIVERSIFICATION, build_book, load_chapters
 from core.ui import page_header, setup_page
 
 setup_page("Learn", "📚")
-page_header("Learn", "📚", "Flip through the Money Handbook: what each option means, how risky it is, how locked-in, and how it's taxed.", step=5)
+page_header("Learn", "📚", "Flip through the Money Handbook: what each option means, how risky it is, how locked-in, and how it's taxed.", step=4)
 
 CONTENT = Path(__file__).resolve().parents[1] / "content"
 chapters = load_chapters(CONTENT)
@@ -30,4 +30,4 @@ with st.expander("Prefer a plain list? Read every chapter here"):
     st.write(DIVERSIFICATION)
 
 st.caption("This is general information about how investing works. It is not a recommendation to buy anything.")
-st.page_link("pages/6_Simulator.py", label="Next: Simulator →")
+st.page_link("pages/5_My_Surplus.py", label="Next: Set your surplus →")

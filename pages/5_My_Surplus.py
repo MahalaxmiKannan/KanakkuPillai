@@ -6,7 +6,7 @@ import streamlit as st
 
 from core.spending import format_inr
 from core.surplus import avoidable_per_month, compute_surplus, describe_duration, months_to_full, runway
-from core.ui import empty_state, load_categorized, setup_page
+from core.ui import empty_state, load_categorized, setup_page, step_tracker
 
 setup_page("My Surplus", "🏦")
 
@@ -48,10 +48,13 @@ if df is None:
     st.stop()
 
 # ---------- header + adjustments ----------
+step_tracker(5)
+quiz = st.session_state.get("risk_result")
+quiz_note = f" · quiz profile: {quiz['profile']}" if quiz else ""
 head, adjust = st.columns([5, 1.1], vertical_alignment="center")
 head.markdown('<div class="sp-title">🏦 My Surplus</div>'
-              f'<div class="sp-sub">What is left each month, and how fast it could become an emergency fund · '
-              f'{st.session_state.get("source_name", "statement")}</div>', unsafe_allow_html=True)
+              f'<div class="sp-sub">What is left each month, and how fast it could become an emergency fund{quiz_note}</div>',
+              unsafe_allow_html=True)
 with adjust.popover("⚙ Adjust", width="stretch"):
     detected = compute_surplus(df)["income_detected"]
     use_override = st.toggle("Enter my own monthly income", value=detected <= 0,
@@ -190,3 +193,4 @@ with side_col:
     else:
         st.caption("Your spending is at or above your income, so there is nothing safe to set aside yet. "
                    "Try a bigger trim, or see My Spending for the biggest categories.")
+        st.page_link("pages/6_Simulator.py", label="Skip to the Simulator →")
