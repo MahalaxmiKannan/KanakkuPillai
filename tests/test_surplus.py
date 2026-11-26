@@ -154,3 +154,30 @@ def test_journey_order_is_consistent():
 def root_dir():
     from pathlib import Path
     return Path(__file__).resolve().parents[1]
+
+
+def test_quiz_page_one_question_at_a_time():
+    from streamlit.testing.v1 import AppTest
+    from core.risk_quiz import QUESTIONS
+    at = AppTest.from_file(str(root_dir() / "pages" / "3_Risk_Quiz.py"), default_timeout=60).run()
+    assert not at.exception
+    assert len(at.radio) == 1                                        # one question on the card at a time
+    nxt = lambda: next(b for b in at.button if b.label == "Next →")  # noqa: E731
+    assert nxt().disabled                                            # can't move on without an answer
+    at.radio[0].set_value(QUESTIONS[0]["options"][1]).run()
+    nxt().click().run()
+    assert "Question 2 of 9" in at.markdown[-1].value or any("Question 2 of 9" in m.value for m in at.markdown)
+    next(b for b in at.button if b.label == "← Back").click().run()   # back: the first answer is still there
+    assert at.radio[0].value == QUESTIONS[0]["options"][1]
+    nxt().click().run()
+    for q in QUESTIONS[1:]:
+        at.radio[0].set_value(q["options"][1]).run()
+        label = "Finish quiz ✓" if q is QUESTIONS[-1] else "Next →"
+        next(b for b in at.button if b.label == label).click().run()
+    assert not at.exception
+    res = at.session_state["risk_result"]
+    assert res["total"] == 18 and res["profile"] == "Moderate"
+    assert any("Moderate" in m.value for m in at.markdown)
+    assert any(b.label == "Start learning →" for b in at.button)
+    next(b for b in at.button if b.label == "Retake the quiz").click().run()
+    assert "risk_result" not in at.session_state and len(at.radio) == 1
