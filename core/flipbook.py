@@ -126,7 +126,7 @@ body { margin:0; font-family: "Source Sans Pro", "Segoe UI", system-ui, sans-ser
 .stage { perspective: 2200px; width:100%; display:flex; justify-content:center; }
 .book { position:relative; width:min(980px, 100%); aspect-ratio: 980/600; max-height:600px; transition: transform .6s cubic-bezier(.3,.8,.3,1); }
 .book.closed { transform: translateX(-25%); }
-.book.ended { transform: translateX(25%); }
+.book.ended { transform: none; }
 .left-page { position:absolute; left:0; top:0; width:50%; height:100%; background:linear-gradient(90deg,var(--paper2),var(--paper));
              border-radius:14px 0 0 14px; box-shadow: 0 20px 40px -18px var(--shadow); overflow:hidden; opacity:0; transition:opacity .4s; }
 .book:not(.closed) .left-page { opacity:1; }
@@ -176,6 +176,19 @@ button { font:inherit; font-weight:650; border:1px solid var(--line); background
          cursor:pointer; transition: transform .15s, background .2s; }
 button:hover:not(:disabled) { background:rgba(27,127,92,.12); } button:active:not(:disabled) { transform:scale(.94); }
 button:disabled { opacity:.35; cursor:default; }
+.endcard { position:absolute; left:50%; top:0; width:50%; height:100%; z-index:100; display:flex; flex-direction:column;
+           justify-content:center; align-items:center; text-align:center; gap:10px; padding:30px 34px; color:#fff;
+           border-radius:0 14px 14px 0; box-shadow: 0 20px 40px -18px var(--shadow);
+           background: radial-gradient(circle at 80% 85%, rgba(245,165,36,.5), transparent 45%), linear-gradient(140deg,var(--cover1),var(--cover2));
+           opacity:0; transform:translateX(-14px); pointer-events:none; transition: opacity .5s .6s, transform .5s .6s; }
+.book.ended .endcard { opacity:1; transform:none; pointer-events:auto; }
+.endcard .emblem { font-size:3.4rem; }
+.endcard h2 { margin:0; font-size:1.7rem; }
+.endcard p { margin:0 0 8px; opacity:.92; max-width:22em; }
+.endcard button { width:min(300px, 100%); }
+.endcard .primary { background:#fff; color:#0f5c43; border-color:#fff; font-weight:750; }
+.endcard .ghost { background:transparent; color:#fff; border-color:rgba(255,255,255,.65); }
+.endcard .ghost:hover, .endcard .primary:hover { background:rgba(255,255,255,.85) !important; color:#0f5c43; }
 .dots { display:flex; gap:6px; } .dot { width:8px; height:8px; border-radius:50%; background:var(--line); transition: all .3s; cursor:pointer; }
 .dot.on { background:var(--accent); width:22px; border-radius:4px; }
 /* phones: a single page that turns away */
@@ -185,6 +198,7 @@ button:disabled { opacity:.35; cursor:default; }
   .leaf { left:0; width:100%; }
   .leaf.flipped { transform: rotateY(-180deg); opacity:0; transition: transform .9s ease, opacity .2s .7s; }
   .front { border-radius:14px; }
+  .endcard { left:0; width:100%; border-radius:14px; }
   .page-body, .opener, .toc, .cover { padding:24px 22px 30px; }
   button { padding:8px 12px; } .dots { gap:4px; }
 }
@@ -193,6 +207,13 @@ button:disabled { opacity:.35; cursor:default; }
 <div class="stage"><div class="book closed" id="book">
   <div class="left-page">{{FIRST}}</div>
   {{LEAVES}}
+  <div class="endcard" id="endcard" aria-live="polite">
+    <div class="emblem">🎓</div>
+    <h2>You've finished the Handbook</h2>
+    <p>Seven options, from a savings account to NPS. Next, put it to work: see what's left each month and how fast it could become an emergency fund.</p>
+    <button class="primary" id="toSurplus">Next: Set your surplus →</button>
+    <button class="ghost" id="restart">↺ Start from the beginning</button>
+  </div>
 </div></div>
 <div class="controls"><button id="prev" aria-label="Previous page">← Back</button><div class="dots" id="dots"></div><button id="next" aria-label="Next page">Next →</button></div>
 <script>
@@ -212,7 +233,10 @@ function render() {
   book.classList.toggle('closed', at === 0);
   book.classList.toggle('ended', at === total);
   document.getElementById('prev').disabled = at === 0;
-  document.getElementById('next').disabled = at === total;
+  const nx = document.getElementById('next');
+  nx.disabled = false;
+  nx.textContent = at === total ? '↺ Start again' : 'Next →';
+  nx.setAttribute('aria-label', at === total ? 'Start the book again' : 'Next page');
   [...dots.children].forEach((d, i) => d.classList.toggle('on', i === at));
 }
 function go(n) { at = Math.max(0, Math.min(total, n)); render(); }
@@ -222,7 +246,17 @@ leaves.forEach((l, i) => l.addEventListener('click', e => {
 }));
 document.querySelectorAll('[data-go]').forEach(a => a.addEventListener('click', e => { e.preventDefault(); e.stopPropagation(); go(+a.dataset.go); }));
 document.getElementById('prev').onclick = () => go(at - 1);
-document.getElementById('next').onclick = () => go(at + 1);
+document.getElementById('next').onclick = () => go(at === total ? 0 : at + 1);
+document.getElementById('restart').onclick = () => go(0);
+// Streamlit's component iframe is same-origin but may not navigate the page itself, so click the app's own
+// sidebar link (keeps the session); open a new tab only if that isn't possible.
+document.getElementById('toSurplus').onclick = () => {
+  try {
+    const link = window.parent.document.querySelector('a[href$="/my-surplus"]');
+    if (link) { link.click(); return; }
+    window.open(window.parent.location.origin + '/my-surplus', '_blank');
+  } catch (err) { window.open('/my-surplus', '_blank'); }
+};
 document.addEventListener('keydown', e => { if (e.key === 'ArrowRight') go(at + 1); if (e.key === 'ArrowLeft') go(at - 1); });
 let sx = null;
 document.addEventListener('touchstart', e => sx = e.touches[0].clientX, { passive: true });

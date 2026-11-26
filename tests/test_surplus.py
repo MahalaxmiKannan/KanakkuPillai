@@ -181,3 +181,11 @@ def test_quiz_page_one_question_at_a_time():
     assert any(b.label == "Start learning →" for b in at.button)
     next(b for b in at.button if b.label == "Retake the quiz").click().run()
     assert "risk_result" not in at.session_state and len(at.radio) == 1
+
+
+def test_handbook_has_an_ending_with_restart_and_next():
+    from core.flipbook import build_book, load_chapters
+    page = build_book(load_chapters(root_dir() / "content"))
+    assert 'id="endcard"' in page and "Start from the beginning" in page and "Next: Set your surplus" in page
+    assert "a[href$=\"/my-surplus\"]" in page                     # the card navigates through the app's own link
+    assert "Start again" in page                                  # the Next control turns into a restart on the last page
