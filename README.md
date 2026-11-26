@@ -16,7 +16,7 @@ The pages follow one path: look at your money, learn, then decide and try it.
 | 4 | Learn | Money Handbook flipbook: savings account, FD, RD, PPF, index fund SIP, gold, NPS | Done |
 | 5 | My Surplus | One screen: income vs essentials vs the rest, a what-if lever, runway to an emergency fund | Done |
 | 6 | Simulator | Monte Carlo SIP on real Nifty 50 history, fan chart, FD line, inflation; pre-filled from the surplus | Done |
-| 7 | Scam Checker | Red-flag rules + NLP model | Day 5 |
+| 7 | Scam Checker | Red-flag rules with reasons + a text model; highlights the phrases; links never clickable | Done |
 | 8 | About | How the models work, numbers, limits | Day 6 |
 
 ## How the simulator works
@@ -52,6 +52,21 @@ Payments to people are never used for training, so names stay out of the model.
 **This does not show the ranges are good.** The bootstrap draws from the same history it is tested on, so the real windows are bound to land inside. High coverage could mean the bands are too wide, or simply that the test is circular, and this check can't distinguish the two. The windows also overlap heavily: there are only 6, 3 and 1 independent windows. A fair test would need data the simulator never saw.
 
 The history is one 19-year stretch that mostly rose (about 8.3% a year in price terms), so the ranges may be kinder than the future.
+
+**Scam checker** (`notebooks/train_scam_checker.ipynb`). The model is trained on **synthetic** messages only (189, written from about 25 scam and genuine templates); it is tested on **32 real messages** it never saw (15 scams, 17 genuine). "Flagged" means the checker says Medium or High. **Recall matters most here**: missing a scam costs far more than a second look at a genuine message.
+
+| | Recall (scams caught) | Precision | False alarms |
+|---|---|---|---|
+| Red-flag rules only | 0.73 (11/15) | 1.00 | 0/17 |
+| Text model only | 0.80 (12/15) | 0.63 | 7/17 |
+| **Rules + model (in the app)** | **0.80** (12/15) | 0.75 | 4/17 |
+
+Read these with care: the test set is tiny, the rules were written after the dataset (real messages included) had been read, so the rules-only row is optimistic, and the model learned from templates, so it is weak on real wording. The thresholds and the way rules and model are combined were fixed before the real messages were scored.
+
+- **Synthetic data is marked as synthetic** in `data/scam_messages.csv` (`source` column). Real messages were collected from SMS, WhatsApp screenshots and public posts, with real people's names, a location and a phone number masked and scam links defanged (`scripts/clean_scam_messages.py`).
+- **A shortcut removed:** most real genuine SMS contain mask tokens (XXXX) and most scams don't, so a model reading raw text would learn "XXXX means genuine". The model only sees text with masks removed and every number replaced by the word `num`; the rules ignore masks. A test checks the saved model's vocabulary has no digits or mask tokens.
+- **Why not sentence embeddings:** the plan's sentence-transformers model needs PyTorch, too heavy for free hosting, so it uses the planned fallback: TF-IDF word and character n-grams + logistic regression.
+- "Low risk" means no red flags were found, never that a message is safe.
 
 ## Run it
 

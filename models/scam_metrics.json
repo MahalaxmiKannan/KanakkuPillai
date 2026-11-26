@@ -1,0 +1,42 @@
+{
+  "real_test": {
+    "rules_only": {
+      "recall": 0.733,
+      "precision": 1.0,
+      "f1": 0.846,
+      "accuracy": 0.875,
+      "tp": 11,
+      "fp": 0,
+      "fn": 4,
+      "tn": 17,
+      "rows": 32
+    },
+    "model_only": {
+      "recall": 0.8,
+      "precision": 0.632,
+      "f1": 0.706,
+      "accuracy": 0.688,
+      "tp": 12,
+      "fp": 7,
+      "fn": 3,
+      "tn": 10,
+      "rows": 32
+    },
+    "combined": {
+      "recall": 0.8,
+      "precision": 0.75,
+      "f1": 0.774,
+      "accuracy": 0.781,
+      "tp": 12,
+      "fp": 4,
+      "fn": 3,
+      "tn": 13,
+      "rows": 32
+    }
+  },
+  "flag_threshold": "Medium or High (score >= 0.40)",
+  "training_rows": {
+    "synthetic": 189
+  },
+  "notes": "Trained on synthetic messages only; tested on real messages never used for training. Rules were written after reading the dataset, so rules-only numbers are optimistic."
+}
